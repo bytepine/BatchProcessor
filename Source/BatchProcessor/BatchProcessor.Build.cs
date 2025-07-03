@@ -19,7 +19,10 @@ public class BatchProcessor : ModuleRules
                 "CoreUObject",
                 "Engine",
                 "Slate",
-                "SlateCore"
+                "SlateCore", 
+                "EditorStyle",
+                "ToolMenus",
+                "UnrealEd",
             }
         );
     }

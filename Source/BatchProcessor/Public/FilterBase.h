@@ -15,8 +15,8 @@ class BATCHPROCESSOR_API UFilterBase : public UObject
 	GENERATED_BODY()
 
 public:
-	void Filter(TSet<FAssetData>& Assets);
+	void Filter(TSet<FAssetData>& Assets) const;
 
 protected:
-	virtual void OnFilter(TSet<FAssetData>& Assets);
+	virtual void OnFilter(TSet<FAssetData>& Assets) const;
 };

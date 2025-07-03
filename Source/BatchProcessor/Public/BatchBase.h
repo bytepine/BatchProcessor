@@ -25,13 +25,21 @@ class BATCHPROCESSOR_API UBatchBase : public UObject
 	/**
 	 * 停止批处理
 	 */
+	UFUNCTION(Blueprintable)
 	void Stop();
+	
 protected:
 	/**
 	 * 批处理开始
 	 */
 	virtual void OnStart();
 
+	/**
+	 * 资产加载完成
+	 * @param AssetPath 资产
+	 */
+	virtual void OnAssetLoaded(FSoftObjectPath AssetPath);
+	
 	/**
 	 * 批处理完成
 	 */
@@ -40,7 +48,7 @@ protected:
 	/**
 	 * 搜索器实例
 	 */
-	UPROPERTY(EditDefaultsOnly, Instanced, Category="扫描", meta=(DisplayName="搜索器"))
+	UPROPERTY(EditDefaultsOnly, Instanced, Category="扫描", meta=(DisplayName="扫描器"))
 	TArray<UScannerBase*> Scanners;
 
 	/**
@@ -54,4 +62,15 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category="处理", meta=(DisplayName="处理器"))
 	TArray<UCommonProcessorBase*> Processors;
+
+private:
+	/**
+	 * 处理计数
+	 */
+	int32 Count;
+	
+	/**
+	 * 最大计数
+	 */
+	int32 Total;
 };

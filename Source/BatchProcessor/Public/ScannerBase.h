@@ -15,8 +15,8 @@ class BATCHPROCESSOR_API UScannerBase : public UObject
 	GENERATED_BODY()
 
 public:
-	bool ScannerAssets(TSet<FAssetData>& Assets);
+	bool ScannerAssets(TSet<FAssetData>& Assets) const;
 
 protected:
-	virtual bool OnScannerAssets(TSet<FAssetData>& Assets);
+	virtual bool OnScannerAssets(TSet<FAssetData>& Assets) const;
 };

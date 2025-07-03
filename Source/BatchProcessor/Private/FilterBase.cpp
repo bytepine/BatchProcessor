@@ -3,12 +3,12 @@
 
 #include "FilterBase.h"
 
-void UFilterBase::Filter(TSet<FAssetData>& Assets)
+void UFilterBase::Filter(TSet<FAssetData>& Assets) const
 {
 	OnFilter(Assets);
 }
 
-void UFilterBase::OnFilter(TSet<FAssetData>& Assets)
+void UFilterBase::OnFilter(TSet<FAssetData>& Assets) const
 {
 	
 }
