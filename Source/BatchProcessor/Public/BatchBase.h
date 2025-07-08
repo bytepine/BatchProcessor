@@ -3,12 +3,16 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Engine/StreamableManager.h"
 #include "UObject/Object.h"
 #include "BatchBase.generated.h"
+
+#define MAX_LOAD_COUNT 5
 
 class UCommonProcessorBase;
 class UFilterBase;
 class UScannerBase;
+
 /**
  * 批处理基类
  */
@@ -27,7 +31,6 @@ class BATCHPROCESSOR_API UBatchBase : public UObject
 	 */
 	UFUNCTION(Blueprintable)
 	void Stop();
-	
 protected:
 	/**
 	 * 批处理开始
@@ -35,10 +38,22 @@ protected:
 	virtual void OnStart();
 
 	/**
-	 * 资产加载完成
-	 * @param AssetPath 资产
+	 * 请求异步加载
 	 */
-	virtual void OnAssetLoaded(FSoftObjectPath AssetPath);
+	void RequestAsyncLoad();
+	
+	/**
+	 * 资产加载完成
+	 * @param PendingArray 资产列表
+	 */
+	virtual void OnAssetLoaded(TArray<FSoftObjectPath> PendingArray);
+
+	/**
+	 * 处理资产
+	 * @param LoadedObject 加载资产
+	 * @return 是否有修改
+	 */
+	virtual bool OnProcessing(UBlueprint* LoadedObject);
 	
 	/**
 	 * 批处理完成
@@ -62,7 +77,6 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category="处理", meta=(DisplayName="处理器"))
 	TArray<UCommonProcessorBase*> Processors;
-
 private:
 	/**
 	 * 处理计数
@@ -73,4 +87,18 @@ private:
 	 * 最大计数
 	 */
 	int32 Total;
+
+	/**
+	 * 正在处理中
+	 */
+	uint8 bProcessing : 1;
+	
+	FStreamableManager StreamableManager;
+
+	TSharedPtr<SNotificationItem> ProgressNotification;
+
+	/**
+	 * 待加载列表
+	 */
+	TArray<FAssetData> AssetArray;
 };
