@@ -9,7 +9,7 @@
 
 #define MAX_LOAD_COUNT 5
 
-class UCommonProcessorBase;
+class UProcessorBase;
 class UFilterBase;
 class UScannerBase;
 
@@ -76,7 +76,7 @@ protected:
 	 * 处理器实例
 	 */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category="处理", meta=(DisplayName="处理器"))
-	TArray<UCommonProcessorBase*> Processors;
+	TArray<UProcessorBase*> Processors;
 private:
 	/**
 	 * 处理计数

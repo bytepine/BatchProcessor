@@ -13,4 +13,14 @@ UCLASS(Abstract, EditInlineNew)
 class BATCHPROCESSOR_API UConditionBase : public UObject
 {
 	GENERATED_BODY()
+
+public:
+	explicit UConditionBase(const FObjectInitializer& ObjectInitializer);
+
+	bool CheckCondition(void* Pointer, const UStruct* Struct);
+protected:
+	virtual bool OnCheckCondition(void* Pointer, const UStruct* Struct);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "参数", meta=(DisplayName = "取反"))
+	uint8 bNegation : 1;
 };

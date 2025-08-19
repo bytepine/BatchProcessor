@@ -1,0 +1,41 @@
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "ProcessorBase.h"
+#include "Processor_Iterators.generated.h"
+
+/**
+ * 属性迭代器
+ */
+UCLASS(DisplayName="属性迭代器")
+class BATCHPROCESSOR_API UProcessor_Iterators : public UProcessorBase
+{
+	GENERATED_BODY()
+
+protected:
+	/**
+	 * 批处理开始
+	 */
+	virtual void OnStart() const override;
+
+	/**
+	 * 处理逻辑
+	 * @param Pointer 处理对象
+	 * @param Struct 处理结构
+	 * @return 是否有修改
+	 */
+	virtual bool OnProcessing(void* Pointer, const UStruct* Struct) const override;
+	
+	/**
+	 * 批处理结束
+	 */
+	virtual void OnFinish() const override;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "属性迭代", meta=(DisplayName = "成员属性"))
+	FString PropertyName;
+
+	UPROPERTY(EditDefaultsOnly, Instanced, Category = "条件组合", meta=(DisplayName = "处理器"))
+	TArray<UProcessorBase*> Processors;
+};

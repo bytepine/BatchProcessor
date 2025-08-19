@@ -53,12 +53,3 @@ protected:
 	 */
 	virtual void OnFinish() const;
 };
-
-/**
- * 通用处理器基类
- */
-UCLASS(Abstract, EditInlineNew)
-class BATCHPROCESSOR_API UCommonProcessorBase : public UProcessorBase
-{
-	GENERATED_BODY()
-};

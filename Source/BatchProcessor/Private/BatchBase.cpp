@@ -48,7 +48,7 @@ void UBatchBase::OnStart()
 	bProcessing = true;
 	
 	// 批处理开始
-	for (const UCommonProcessorBase* Processor : Processors)
+	for (const UProcessorBase* Processor : Processors)
 	{
 		Processor->Start();
 	}
@@ -176,7 +176,7 @@ void UBatchBase::OnFinish()
 	}
 
 	// 批处理完成
-	for (const UCommonProcessorBase* Processor : Processors)
+	for (const UProcessorBase* Processor : Processors)
 	{
 		Processor->Finish();
 	}
