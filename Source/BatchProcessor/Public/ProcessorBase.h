@@ -52,4 +52,10 @@ protected:
 	 * 批处理结束
 	 */
 	virtual void OnFinish() const;
+	
+	/**
+	 * 获取子处理器
+	 * @param SubProcessors 子处理器
+	 */
+	virtual void GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const;
 };

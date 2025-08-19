@@ -3,27 +3,15 @@
 
 #include "Processor_Iterators.h"
 
-void UProcessor_Iterators::OnStart() const
-{
-	Super::OnStart();
-
-	for (const auto Processor : Processors)
-	{
-		Processor->Start();
-	}
-}
-
 bool UProcessor_Iterators::OnProcessing(void* Pointer, const UStruct* Struct) const
 {
 	return Super::OnProcessing(Pointer, Struct);
 }
 
-void UProcessor_Iterators::OnFinish() const
+void UProcessor_Iterators::GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const
 {
-	Super::OnFinish();
-
-	for (const auto Processor : Processors)
-	{
-		Processor->Finish();
-	}
+	Super::GetSubProcessors(SubProcessors);
+	
+	SubProcessors.Append(Processors);
 }
+

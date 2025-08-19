@@ -17,11 +17,6 @@ class BATCHPROCESSOR_API UProcessor_Condition : public UProcessorBase
 
 protected:
 	/**
-	 * 批处理开始
-	 */
-	virtual void OnStart() const override;
-
-	/**
 	 * 处理逻辑
 	 * @param Pointer 处理对象
 	 * @param Struct 处理结构
@@ -30,9 +25,10 @@ protected:
 	virtual bool OnProcessing(void* Pointer, const UStruct* Struct) const override;
 	
 	/**
-	 * 批处理结束
+	 * 获取子处理器
+	 * @param SubProcessors 子处理器
 	 */
-	virtual void OnFinish() const override;
+	virtual void GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const override;
 	
 	UPROPERTY(EditDefaultsOnly, Instanced, Category = "条件组合", meta=(DisplayName = "条件判断"))
 	TArray<UConditionBase*> Conditions;

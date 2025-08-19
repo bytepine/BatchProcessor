@@ -6,6 +6,13 @@
 void UProcessorBase::Start() const
 {
 	OnStart();
+
+	TArray<UProcessorBase*> SubProcessors;
+	GetSubProcessors(SubProcessors);
+	for (const UProcessorBase* Processor : SubProcessors)
+	{
+		Processor->Start();
+	}
 }
 
 bool UProcessorBase::Processing(void* Pointer, const UStruct* Struct) const
@@ -16,6 +23,13 @@ bool UProcessorBase::Processing(void* Pointer, const UStruct* Struct) const
 void UProcessorBase::Finish() const
 {
 	OnFinish();
+
+	TArray<UProcessorBase*> SubProcessors;
+	GetSubProcessors(SubProcessors);
+	for (const UProcessorBase* Processor : SubProcessors)
+	{
+		Processor->Finish();
+	}
 }
 
 void UProcessorBase::OnStart() const
@@ -29,6 +43,11 @@ bool UProcessorBase::OnProcessing(void* Pointer, const UStruct* Struct) const
 }
 
 void UProcessorBase::OnFinish() const
+{
+	
+}
+
+void UProcessorBase::GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const
 {
 	
 }

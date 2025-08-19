@@ -16,22 +16,18 @@ class BATCHPROCESSOR_API UProcessor_Iterators : public UProcessorBase
 
 protected:
 	/**
-	 * 批处理开始
-	 */
-	virtual void OnStart() const override;
-
-	/**
 	 * 处理逻辑
 	 * @param Pointer 处理对象
 	 * @param Struct 处理结构
 	 * @return 是否有修改
 	 */
 	virtual bool OnProcessing(void* Pointer, const UStruct* Struct) const override;
-	
+
 	/**
-	 * 批处理结束
+	 * 获取子处理器
+	 * @param SubProcessors 子处理器
 	 */
-	virtual void OnFinish() const override;
+	virtual void GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const override;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "属性迭代", meta=(DisplayName = "成员属性"))
 	FString PropertyName;
