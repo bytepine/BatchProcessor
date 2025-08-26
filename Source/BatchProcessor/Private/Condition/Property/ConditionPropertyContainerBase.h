@@ -22,6 +22,7 @@ class BATCHPROCESSOR_API UConditionPropertyContainerBase : public UConditionProp
 {
 	GENERATED_BODY()
 
+protected:
 	UPROPERTY(EditDefaultsOnly, Category="参数", DisplayName="比较", meta=(DisplayPriority=1))
 	EBoolContainerComparisonOperators ComparisonOperator;
 };

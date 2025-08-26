@@ -17,6 +17,8 @@ class BATCHPROCESSOR_API UConditionPropertyContainer_String : public UConditionP
 protected:
 	virtual bool OnCheckCondition(void* Pointer, const UStruct* Struct) override;
 
+	bool CheckStringArray(const TArray<FString>& StringArray);
+	
 	UPROPERTY(EditDefaultsOnly, Category="参数", DisplayName="目标值")
 	TArray<FString> Values;
 };

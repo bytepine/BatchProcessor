@@ -17,6 +17,8 @@ class BATCHPROCESSOR_API UConditionPropertyContainer_Float : public UConditionPr
 protected:
 	virtual bool OnCheckCondition(void* Pointer, const UStruct* Struct) override;
 
+	bool CheckFloatArray(const TArray<double>& FloatArray);
+	
 	UPROPERTY(EditDefaultsOnly, Category="参数", DisplayName="目标值")
 	TArray<double> Values;
 };

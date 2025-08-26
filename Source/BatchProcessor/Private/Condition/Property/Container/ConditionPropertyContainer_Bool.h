@@ -17,6 +17,8 @@ class BATCHPROCESSOR_API UConditionPropertyContainer_Bool : public UConditionPro
 protected:
 	virtual bool OnCheckCondition(void* Pointer, const UStruct* Struct) override;
 
+	bool CheckBoolArray(const TArray<bool>& BoolArray) const;
+	
 	UPROPERTY(EditDefaultsOnly, Category="参数", DisplayName="目标值")
 	TArray<bool> Values;
 };
