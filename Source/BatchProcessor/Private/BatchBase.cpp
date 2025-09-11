@@ -16,36 +16,36 @@ UBatchBase::UBatchBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, Count(0)
 	, Total(0)
-	, bProcessing(false)
+	, Status(EBatchStatus::Idle)
 {
 	
 }
 
 void UBatchBase::Start()
 {
-	AddToRoot();
-
-	// 创建进度通知
-	FNotificationInfo Info(FText::FromString(TEXT("批处理进行中...")));
-	Info.bFireAndForget = false;
-	Info.bUseThrobber = true;
-	Info.bUseSuccessFailIcons = false;
-	Info.bUseLargeFont = false;
-	ProgressNotification = FSlateNotificationManager::Get().AddNotification(Info);
+	if (Status != EBatchStatus::Idle) return;
 	
 	OnStart();
 }
 
 void UBatchBase::Stop()
 {
-	// 标记停止
-	bProcessing = false;
+	if (Status != EBatchStatus::Processing) return;
+
+	Status = EBatchStatus::Stop;
 }
 
 void UBatchBase::OnStart()
 {
-	// 标记处理状态
-	bProcessing = true;
+	Status = EBatchStatus::Start;
+	
+	// 创建进度通知
+	FNotificationInfo Info(FText::FromString(TEXT("批处理开始")));
+	Info.bFireAndForget = false;
+	Info.bUseThrobber = true;
+	Info.bUseSuccessFailIcons = false;
+	Info.bUseLargeFont = false;
+	ProgressNotification = FSlateNotificationManager::Get().AddNotification(Info);
 	
 	// 批处理开始
 	for (const UProcessorBase* Processor : Processors)
@@ -71,7 +71,7 @@ void UBatchBase::OnStart()
 	// 处理资产
 	if (Total > 0)
 	{
-		RequestAsyncLoad();
+		OnProcessing();
 	}
 	else
 	{
@@ -79,8 +79,27 @@ void UBatchBase::OnStart()
 	}
 }
 
-void UBatchBase::RequestAsyncLoad()
+void UBatchBase::OnStop()
 {
+	Status = EBatchStatus::Idle;
+	
+	if (ProgressNotification.IsValid())
+	{
+		ProgressNotification->SetText(FText::FromString(TEXT("批处理停止")));
+		ProgressNotification->SetCompletionState(SNotificationItem::CS_Fail);
+		ProgressNotification->SetFadeOutDuration(3.0f);
+		ProgressNotification->Fadeout();
+	}
+}
+
+void UBatchBase::OnProcessing()
+{
+	if (Status == EBatchStatus::Stop)
+	{
+		OnStop();
+		return;
+	}
+	
 	TArray<FSoftObjectPath> PendingArray;
 	const int32 LoadCount = AssetArray.Num() > MAX_LOAD_COUNT ? MAX_LOAD_COUNT : AssetArray.Num();
 	for (int i = 0; i < LoadCount; ++i)
@@ -100,7 +119,7 @@ void UBatchBase::OnAssetLoaded(TArray<FSoftObjectPath> PendingArray)
 
 		if (UBlueprint* LoadedObject = Cast<UBlueprint>(TargetPath.ResolveObject()); IsValid(LoadedObject))
 		{
-			if (OnProcessing(LoadedObject))
+			if (ProcessAssets(LoadedObject))
 			{
 				// 标记包为脏
 				if (LoadedObject->MarkPackageDirty())
@@ -132,27 +151,27 @@ void UBatchBase::OnAssetLoaded(TArray<FSoftObjectPath> PendingArray)
 		StreamableManager.Unload(TargetPath);
 	}
 	
-	if (Count >= Total || !bProcessing)
+	if (Count >= Total)
 	{
 		OnFinish();
 	}
 	else
 	{
-		RequestAsyncLoad();
+		OnProcessing();
 	}
 }
 
-bool UBatchBase::OnProcessing(UBlueprint* LoadedObject)
+bool UBatchBase::ProcessAssets(UBlueprint* Assets)
 {
 	const float Percent = static_cast<float>(Count) / static_cast<float>(Total) * 100.f;
 	const FString Progress = FString::Printf(TEXT("%d/%d (%.1f%%)"), Count, Total, Percent);
 	
-	if (!IsValid(LoadedObject))
+	if (!IsValid(Assets))
 	{
 		UE_LOG(LogBatchProcessor, Error, TEXT("OnProcessing: AssetsObject is InValid! %s"), *Progress);
 		return false;
 	}
-	UObject* CDO = LoadedObject->GeneratedClass->GetDefaultObject();
+	UObject* CDO = Assets->GeneratedClass->GetDefaultObject();
 
 	bool bResult = false;
 	
@@ -161,7 +180,7 @@ bool UBatchBase::OnProcessing(UBlueprint* LoadedObject)
 	// 更新进度通知
 	if (ProgressNotification.IsValid())
 	{
-		ProgressNotification->SetText(FText::FromString(FString::Printf(TEXT("%s %s"), *LoadedObject->GetName(), *Progress)));
+		ProgressNotification->SetText(FText::FromString(FString::Printf(TEXT("%s %s"), *Assets->GetName(), *Progress)));
 		ProgressNotification->SetCompletionState(SNotificationItem::CS_Pending);
 	}
 	
@@ -170,8 +189,13 @@ bool UBatchBase::OnProcessing(UBlueprint* LoadedObject)
 
 void UBatchBase::OnFinish()
 {
+	Status = EBatchStatus::Idle;
+	
 	if (ProgressNotification.IsValid())
 	{
+		ProgressNotification->SetText(FText::FromString(TEXT("批处理完成")));
+		ProgressNotification->SetCompletionState(SNotificationItem::CS_Success);
+		ProgressNotification->SetFadeOutDuration(3.0f);
 		ProgressNotification->Fadeout();
 	}
 
@@ -180,9 +204,4 @@ void UBatchBase::OnFinish()
 	{
 		Processor->Finish();
 	}
-
-	// 标记完成
-	bProcessing = false;
-	
-	RemoveFromRoot();
 }

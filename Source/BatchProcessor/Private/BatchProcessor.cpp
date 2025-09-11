@@ -39,7 +39,7 @@ void FBatchProcessorModule::RegisterBlueprintEditorToolbar()
 				FUIAction(
 					FExecuteAction::CreateLambda([BlueprintEditor]()
 					{
-						if (UBatchBase* Processor = NewObject<UBatchBase>(GetTransientPackage(), BlueprintEditor->GetBlueprintObj()->GeneratedClass))
+						if (UBatchBase* Processor = BlueprintEditor->GetBlueprintObj()->GeneratedClass->GetDefaultObject<UBatchBase>())
 						{
 							Processor->Start();
 						}

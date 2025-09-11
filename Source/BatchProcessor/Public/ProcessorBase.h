@@ -31,7 +31,7 @@ public:
 	bool Processing(void* Pointer, const UStruct* Struct) const;
 	
 	/**
-	 * 批处理结束
+	 * 批处理完成
 	 */
 	void Finish() const;
 protected:

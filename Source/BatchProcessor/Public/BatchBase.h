@@ -13,6 +13,15 @@ class UProcessorBase;
 class UFilterBase;
 class UScannerBase;
 
+UENUM()
+enum class EBatchStatus : uint8
+{
+	Idle,
+	Start,
+	Processing,
+	Stop
+};
+
 /**
  * 批处理基类
  */
@@ -36,11 +45,16 @@ protected:
 	 * 批处理开始
 	 */
 	virtual void OnStart();
-
+	
 	/**
-	 * 请求异步加载
+	 * 批处理停止
 	 */
-	void RequestAsyncLoad();
+	virtual void OnStop();
+	
+	/**
+	 * 批处理执行
+	 */
+	virtual void OnProcessing();
 	
 	/**
 	 * 资产加载完成
@@ -50,10 +64,10 @@ protected:
 
 	/**
 	 * 处理资产
-	 * @param LoadedObject 加载资产
+	 * @param Assets 加载资产
 	 * @return 是否有修改
 	 */
-	virtual bool OnProcessing(UBlueprint* LoadedObject);
+	virtual bool ProcessAssets(UBlueprint* Assets);
 	
 	/**
 	 * 批处理完成
@@ -89,12 +103,18 @@ private:
 	int32 Total;
 
 	/**
-	 * 正在处理中
+	 * 批处理状态
 	 */
-	uint8 bProcessing : 1;
-	
+	EBatchStatus Status;
+
+	/**
+	 * 资产加载管理器
+	 */
 	FStreamableManager StreamableManager;
 
+	/**
+	 * 进度通知
+	 */
 	TSharedPtr<SNotificationItem> ProgressNotification;
 
 	/**
