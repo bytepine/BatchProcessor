@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "ProcessorBase.generated.h"
 
+struct FBatchVariable;
+class UBatchContext;
 class UBatchBase;
 
 /**
@@ -18,42 +20,46 @@ class BATCHPROCESSOR_API UProcessorBase : public UObject
 
 public:
 	/**
+	 * @param Context 上下文
 	 * 批处理开始
 	 */
-	void Start() const;
+	void Start(UBatchContext* Context) const;
 	
 	/**
 	 * 处理逻辑
-	 * @param Blueprint 蓝图对象
-	 * @param Pointer 处理对象
-	 * @param Struct 处理结构
+	 * @param Assets 蓝图资产
+	 * @param Context 上下文
+	 * @param Variable 变量
 	 * @return 是否有修改
 	 */
-	bool Processing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const;
+	bool Processing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const;
 	
 	/**
+	 * @param Context 上下文
 	 * 批处理完成
 	 */
-	void Finish() const;
+	void Finish(UBatchContext* Context) const;
 protected:
 	/**
+	 * @param Context 上下文
 	 * 批处理开始
 	 */
-	virtual void OnStart() const;
+	virtual void OnStart(UBatchContext* Context) const;
 
 	/**
 	 * 处理逻辑
-	 * @param Blueprint 蓝图对象
-	 * @param Pointer 处理对象
-	 * @param Struct 处理结构
+	 * @param Assets 蓝图资产
+	 * @param Context 上下文
+	 * @param Variable 变量
 	 * @return 是否有修改
 	 */
-	virtual bool OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const;
+	virtual bool OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const;
 	
 	/**
-	 * 批处理结束
+	 * @param Context 上下文
+	 * 批处理完成
 	 */
-	virtual void OnFinish() const;
+	virtual void OnFinish(UBatchContext* Context) const;
 	
 	/**
 	 * 获取子处理器

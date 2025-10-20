@@ -6,6 +6,9 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "BatchFunctionLibrary.generated.h"
 
+struct FBatchProperty;
+struct FBatchVariable;
+class UBatchContext;
 class UBatchBase;
 class UProcessorBase;
 /**
@@ -17,12 +20,12 @@ class BATCHPROCESSOR_API UBatchFunctionLibrary : public UBlueprintFunctionLibrar
 	GENERATED_BODY()
 
 public:
-	static bool DoProcessor(UProcessorBase* Processor, UBlueprint* Blueprint, void* Pointer, const UStruct* Struct);
+	static bool DoProcessor(const UProcessorBase* Processor, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
 	
 	template<typename SPBatchProcessorType = UProcessorBase>
-	static bool DoProcessors(const TArray<SPBatchProcessorType*>& Processors, UBlueprint* Blueprint, void* Pointer, const UStruct* Struct);
+	static bool DoProcessors(const TArray<SPBatchProcessorType*>& Processors, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
 
-	static bool FindProperty(const FString& PropertyName, void* Pointer, const UStruct* Struct, void*& TargetPointer, FProperty*& TargetProperty);
+	static bool FindProperty(const FString& PropertyName, const FBatchVariable& Variable, FBatchProperty& FindProperty);
 
 	static FProperty* FindPropertyByName(const UStruct* Struct, const FString& PropertyName);
 };

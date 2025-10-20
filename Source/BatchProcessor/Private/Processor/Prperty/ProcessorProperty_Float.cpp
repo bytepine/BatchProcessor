@@ -3,7 +3,7 @@
 
 #include "ProcessorProperty_Float.h"
 
-bool UProcessorProperty_Float::OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const
+bool UProcessorProperty_Float::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	return Super::OnProcessing(Blueprint, Pointer, Struct);
+	return Super::OnProcessing(Assets, Context, Variable);
 }

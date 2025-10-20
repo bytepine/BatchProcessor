@@ -15,7 +15,7 @@ class BATCHPROCESSOR_API UProcessorProperty_Float : public UProcessorPropertyBas
 	GENERATED_BODY()
 
 protected:
-	virtual bool OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const override;
+	virtual bool OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const override;
 
 	UPROPERTY(EditDefaultsOnly, Category="属性修改", DisplayName="目标值")
 	double Value;

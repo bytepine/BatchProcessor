@@ -3,30 +3,30 @@
 
 #include "ConditionPropertyContainer_Int.h"
 
+#include "BatchDefine.h"
 #include "BatchProcessor.h"
 
-bool UConditionPropertyContainer_Int::OnCheckCondition(void* Pointer, const UStruct* Struct)
+bool UConditionPropertyContainer_Int::OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Pointer, Struct);
+	bool bResult = Super::OnCheckCondition(Context, Variable);
 
-	void* TargetPoint = nullptr;
-	FProperty* TargetProperty = nullptr;
-	FindProperty(Pointer, Struct, TargetPoint, TargetProperty);
-	if (!TargetPoint || !TargetProperty)
+	FBatchProperty Target;
+	FindProperty(Variable, Target);
+	if (!Target.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckIntContainer: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
-	// 检查属性是否是整数数组类型
+		// 检查属性是否是整数数组类型
 	TArray<int64> IntArray;
-	if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(TargetProperty))
+	if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Target.Property))
 	{
 		if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(ArrayProperty->Inner))
 		{
 			if (NumericProperty->IsInteger())
 			{
-				FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+				FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(Target.Address));
 				for (int32 i = 0; i < ArrayHelper.Num(); ++i)
 				{
 					const void* ElementPtr = ArrayHelper.GetRawPtr(i);
@@ -41,13 +41,13 @@ bool UConditionPropertyContainer_Int::OnCheckCondition(void* Pointer, const UStr
 			}
 		}
 	}
-	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(TargetProperty))
+	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(Target.Property))
 	{
 		if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(SetProperty->ElementProp))
 		{
 			if (NumericProperty->IsInteger())
 			{
-				FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+				FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(Target.Address));
 				for (int32 i = 0; i < SetHelper.Num(); ++i)
 				{
 					if (SetHelper.IsValidIndex(i))
@@ -65,13 +65,13 @@ bool UConditionPropertyContainer_Int::OnCheckCondition(void* Pointer, const UStr
 			}
 		}
 	}
-	else if (const FMapProperty* MapProperty = CastField<FMapProperty>(TargetProperty))
+	else if (const FMapProperty* MapProperty = CastField<FMapProperty>(Target.Property))
 	{
 		if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(MapProperty->ValueProp))
 		{
 			if (NumericProperty->IsInteger())
 			{
-				FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+				FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(Target.Address));
 				for (int32 i = 0; i < MapHelper.Num(); ++i)
 				{
 					if (MapHelper.IsValidIndex(i))

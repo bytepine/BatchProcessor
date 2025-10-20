@@ -15,7 +15,7 @@ class BATCHPROCESSOR_API UConditionPropertyContainer_String : public UConditionP
 	GENERATED_BODY()
 
 protected:
-	virtual bool OnCheckCondition(void* Pointer, const UStruct* Struct) override;
+	virtual bool OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable) override;
 
 	bool CheckStringArray(const TArray<FString>& StringArray);
 	

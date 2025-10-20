@@ -2,40 +2,39 @@
 
 
 #include "ConditionProperty_String.h"
-
+#include "BatchDefine.h"
 #include "BatchProcessor.h"
 
-bool UConditionProperty_String::OnCheckCondition(void* Pointer, const UStruct* Struct)
+bool UConditionProperty_String::OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Pointer, Struct);
+	bool bResult = Super::OnCheckCondition(Context, Variable);
 
-	void* TargetPoint = nullptr;
-	FProperty* TargetProperty = nullptr;
-	FindProperty(Pointer, Struct, TargetPoint, TargetProperty);
-	if (!TargetPoint || !TargetProperty)
+	FBatchProperty Target;
+	FindProperty(Variable, Target);
+	if (!Target.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckString: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
 	// 检查属性是否是字符串类型(FString/FName/FText)
 	FString PropertyValue;
 	
-	const FStrProperty* StrProperty = CastField<FStrProperty>(TargetProperty);
-	const FNameProperty* NameProperty = CastField<FNameProperty>(TargetProperty);
-	const FTextProperty* TextProperty = CastField<FTextProperty>(TargetProperty);
+	const FStrProperty* StrProperty = CastField<FStrProperty>(Target.Property);
+	const FNameProperty* NameProperty = CastField<FNameProperty>(Target.Property);
+	const FTextProperty* TextProperty = CastField<FTextProperty>(Target.Property);
 	
 	if (StrProperty)
 	{
-		PropertyValue = *StrProperty->ContainerPtrToValuePtr<FString>(TargetPoint);
+		PropertyValue = *StrProperty->ContainerPtrToValuePtr<FString>(Target.Address);
 	}
 	else if (NameProperty)
 	{
-		PropertyValue = NameProperty->ContainerPtrToValuePtr<FName>(TargetPoint)->ToString();
+		PropertyValue = NameProperty->ContainerPtrToValuePtr<FName>(Target.Address)->ToString();
 	}
 	else if (TextProperty)
 	{
-		PropertyValue = TextProperty->ContainerPtrToValuePtr<FText>(TargetPoint)->ToString();
+		PropertyValue = TextProperty->ContainerPtrToValuePtr<FText>(Target.Address)->ToString();
 	}
 	else
 	{

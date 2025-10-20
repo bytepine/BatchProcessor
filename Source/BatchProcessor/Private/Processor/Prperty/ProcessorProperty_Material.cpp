@@ -3,7 +3,7 @@
 
 #include "ProcessorProperty_Material.h"
 
-bool UProcessorProperty_Material::OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const
+bool UProcessorProperty_Material::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	return Super::OnProcessing(Blueprint, Pointer, Struct);
+	return Super::OnProcessing(Assets, Context, Variable);
 }

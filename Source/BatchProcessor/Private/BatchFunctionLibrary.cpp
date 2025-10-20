@@ -3,31 +3,32 @@
 
 #include "BatchFunctionLibrary.h"
 
+#include "BatchDefine.h"
 #include "ProcessorBase.h"
 
-bool UBatchFunctionLibrary::DoProcessor(UProcessorBase* Processor, UBlueprint* Blueprint, void* Pointer, const UStruct* Struct)
+bool UBatchFunctionLibrary::DoProcessor(const UProcessorBase* Processor, const UBlueprint* Assets, UBatchContext* Context,
+	const FBatchVariable& Variable)
 {
-	return Processor->Processing(Blueprint, Pointer, Struct);
+	return Processor->Processing(Assets, Context, Variable);
 }
 
 template <typename SPBatchProcessorType>
-bool UBatchFunctionLibrary::DoProcessors(const TArray<SPBatchProcessorType*>& Processors, UBlueprint* Blueprint, void* Pointer,
-	const UStruct* Struct)
+bool UBatchFunctionLibrary::DoProcessors(const TArray<SPBatchProcessorType*>& Processors, const UBlueprint* Assets, UBatchContext* Context,
+	const FBatchVariable& Variable)
 {
 	bool bResult = false;
 	
 	for (const UProcessorBase* Processor : Processors)
 	{
-		bResult |= Processor->Processing(Blueprint, Pointer, Struct);
+		bResult |= Processor->Processing(Assets, Context, Variable);
 	}
 	
 	return bResult;
 }
 
-bool UBatchFunctionLibrary::FindProperty(const FString& PropertyName, void* Pointer, const UStruct* Struct,
-	void*& TargetPointer, FProperty*& TargetProperty)
+bool UBatchFunctionLibrary::FindProperty(const FString& PropertyName, const FBatchVariable& Variable, FBatchProperty& FindProperty)
 {
-		if (!Pointer || !Struct)
+	if (!Variable.Address|| !Variable.Struct)
 	{
 		return false;
 	}
@@ -42,8 +43,8 @@ bool UBatchFunctionLibrary::FindProperty(const FString& PropertyName, void* Poin
 	}
 
 	// 初始化查找容器和结构
-	void* CurrentContainer = Pointer;
-	const UStruct* CurrentStruct = Struct;
+	void* CurrentContainer = Variable.Address;
+	const UStruct* CurrentStruct = Variable.Struct;
 
 	// 遍历属性路径
 	for (int32 i = 0; i < PropertyPath.Num(); ++i)
@@ -93,8 +94,8 @@ bool UBatchFunctionLibrary::FindProperty(const FString& PropertyName, void* Poin
 		// 如果是最后一个属性，直接返回
 		if (i == PropertyPath.Num() - 1)
 		{
-			TargetPointer = CurrentContainer;
-			TargetProperty = CurrentProperty;
+			FindProperty.Address = CurrentContainer;
+			FindProperty.Property = CurrentProperty;
 			return true;
 		}
 

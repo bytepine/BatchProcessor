@@ -9,6 +9,7 @@
 
 #define MAX_LOAD_COUNT 5
 
+class UBatchContext;
 class UProcessorBase;
 class UFilterBase;
 class UScannerBase;
@@ -53,26 +54,30 @@ protected:
 	
 	/**
 	 * 批处理执行
+	 * @param Context 上下文
 	 */
-	virtual void OnProcessing();
+	virtual void OnProcessing(UBatchContext* Context);
 	
 	/**
 	 * 资产加载完成
+	 * @param Context 上下文
 	 * @param PendingArray 资产列表
 	 */
-	virtual void OnAssetLoaded(TArray<FSoftObjectPath> PendingArray);
+	virtual void OnAssetLoaded(UBatchContext* Context, TArray<FSoftObjectPath> PendingArray);
 
 	/**
 	 * 处理资产
+	 * @param Context 上下文
 	 * @param Assets 加载资产
 	 * @return 是否有修改
 	 */
-	virtual bool ProcessAssets(UBlueprint* Assets);
+	virtual bool ProcessAssets(UBatchContext* Context, UBlueprint* Assets);
 	
 	/**
 	 * 批处理完成
+	 * @param Context 上下文
 	 */
-	virtual void OnFinish();
+	virtual void OnFinish(UBatchContext* Context);
 
 	/**
 	 * 搜索器实例

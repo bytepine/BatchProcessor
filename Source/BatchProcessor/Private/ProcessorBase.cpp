@@ -3,51 +3,51 @@
 
 #include "ProcessorBase.h"
 
-void UProcessorBase::Start() const
+void UProcessorBase::Start(UBatchContext* Context) const
 {
-	OnStart();
+	OnStart(Context);
 
 	TArray<UProcessorBase*> SubProcessors;
 	GetSubProcessors(SubProcessors);
-	for (UProcessorBase* Processor : SubProcessors)
+	for (const UProcessorBase* Processor : SubProcessors)
 	{
-		Processor->Start();
+		Processor->Start(Context);
 	}
 }
 
-bool UProcessorBase::Processing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const
+bool UProcessorBase::Processing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	return OnProcessing(Blueprint, Pointer, Struct);
+	return OnProcessing(Assets, Context, Variable);
 }
 
-void UProcessorBase::Finish() const
+void UProcessorBase::Finish(UBatchContext* Context) const
 {
-	OnFinish();
+	OnFinish(Context);
 
 	TArray<UProcessorBase*> SubProcessors;
 	GetSubProcessors(SubProcessors);
-	for (UProcessorBase* Processor : SubProcessors)
+	for (const UProcessorBase* Processor : SubProcessors)
 	{
-		Processor->Finish();
+		Processor->Finish(Context);
 	}
 }
 
-void UProcessorBase::OnStart() const
+void UProcessorBase::GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const
 {
 	
 }
 
-bool UProcessorBase::OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const
+void UProcessorBase::OnStart(UBatchContext* Context) const
+{
+	
+}
+
+bool UProcessorBase::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
 {
 	return false;
 }
 
-void UProcessorBase::OnFinish() const
-{
-	
-}
-
-void UProcessorBase::GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const
+void UProcessorBase::OnFinish(UBatchContext* Context) const
 {
 	
 }

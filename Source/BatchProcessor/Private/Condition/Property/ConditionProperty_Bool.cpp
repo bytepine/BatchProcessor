@@ -3,23 +3,23 @@
 
 #include "ConditionProperty_Bool.h"
 
+#include "BatchDefine.h"
 #include "BatchProcessor.h"
 
-bool UConditionProperty_Bool::OnCheckCondition(void* Pointer, const UStruct* Struct)
+bool UConditionProperty_Bool::OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Pointer, Struct);
+	bool bResult = Super::OnCheckCondition(Context, Variable);
 
-	void* TargetPoint = nullptr;
-	FProperty* TargetProperty = nullptr;
-	FindProperty(Pointer, Struct, TargetPoint, TargetProperty);
-	if (!TargetPoint || !TargetProperty)
+	FBatchProperty Target;
+	FindProperty(Variable, Target);
+	if (!Target.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBool: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
 	// 检查属性是否是布尔类型
-	const FBoolProperty* BoolProperty = CastField<FBoolProperty>(TargetProperty);
+	const FBoolProperty* BoolProperty = CastField<FBoolProperty>(Target.Property);
 	if (!BoolProperty)
 	{
 		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBool: 属性类型错误 [%s]"), *PropertyName);
@@ -27,7 +27,7 @@ bool UConditionProperty_Bool::OnCheckCondition(void* Pointer, const UStruct* Str
 	}
 
 	// 获取布尔值 - 使用标准方法获取
-	const bool bPropertyValue = *BoolProperty->ContainerPtrToValuePtr<bool>(TargetPoint);
+	const bool bPropertyValue = *BoolProperty->ContainerPtrToValuePtr<bool>(Target.Address);
 
 	switch (ComparisonOperator)
 	{

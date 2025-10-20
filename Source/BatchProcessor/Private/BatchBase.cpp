@@ -3,6 +3,8 @@
 
 #include "BatchBase.h"
 
+#include "BatchContext.h"
+#include "BatchDefine.h"
 #include "BatchFunctionLibrary.h"
 #include "BatchProcessor.h"
 #include "FilterBase.h"
@@ -46,11 +48,14 @@ void UBatchBase::OnStart()
 	Info.bUseSuccessFailIcons = false;
 	Info.bUseLargeFont = false;
 	ProgressNotification = FSlateNotificationManager::Get().AddNotification(Info);
+
+	UBatchContext* Context = NewObject<UBatchContext>();
+	Context->AddToRoot();
 	
 	// 批处理开始
 	for (const UProcessorBase* Processor : Processors)
 	{
-		Processor->Start();
+		Processor->Start(Context);
 	}
 	
 	// 搜索资产
@@ -71,11 +76,11 @@ void UBatchBase::OnStart()
 	// 处理资产
 	if (Total > 0)
 	{
-		OnProcessing();
+		OnProcessing(Context);
 	}
 	else
 	{
-		OnFinish();
+		OnFinish(Context);
 	}
 }
 
@@ -92,7 +97,7 @@ void UBatchBase::OnStop()
 	}
 }
 
-void UBatchBase::OnProcessing()
+void UBatchBase::OnProcessing(UBatchContext* Context)
 {
 	if (Status == EBatchStatus::Stop)
 	{
@@ -108,10 +113,10 @@ void UBatchBase::OnProcessing()
 	}
 
 	StreamableManager.RequestAsyncLoad(PendingArray, 
-				FStreamableDelegate::CreateUObject(this, &UBatchBase::OnAssetLoaded, PendingArray));
+				FStreamableDelegate::CreateUObject(this, &UBatchBase::OnAssetLoaded, Context, PendingArray));
 }
 
-void UBatchBase::OnAssetLoaded(TArray<FSoftObjectPath> PendingArray)
+void UBatchBase::OnAssetLoaded(UBatchContext* Context, TArray<FSoftObjectPath> PendingArray)
 {
 	for (auto& TargetPath : PendingArray)
 	{
@@ -119,7 +124,7 @@ void UBatchBase::OnAssetLoaded(TArray<FSoftObjectPath> PendingArray)
 
 		if (UBlueprint* LoadedObject = Cast<UBlueprint>(TargetPath.ResolveObject()); IsValid(LoadedObject))
 		{
-			if (ProcessAssets(LoadedObject))
+			if (ProcessAssets(Context, LoadedObject))
 			{
 				// 标记包为脏
 				if (LoadedObject->MarkPackageDirty())
@@ -153,15 +158,15 @@ void UBatchBase::OnAssetLoaded(TArray<FSoftObjectPath> PendingArray)
 	
 	if (Count >= Total)
 	{
-		OnFinish();
+		OnFinish(Context);
 	}
 	else
 	{
-		OnProcessing();
+		OnProcessing(Context);
 	}
 }
 
-bool UBatchBase::ProcessAssets(UBlueprint* Assets)
+bool UBatchBase::ProcessAssets(UBatchContext* Context, UBlueprint* Assets)
 {
 	const float Percent = static_cast<float>(Count) / static_cast<float>(Total) * 100.f;
 	const FString Progress = FString::Printf(TEXT("%d/%d (%.1f%%)"), Count, Total, Percent);
@@ -171,11 +176,11 @@ bool UBatchBase::ProcessAssets(UBlueprint* Assets)
 		UE_LOG(LogBatchProcessor, Error, TEXT("OnProcessing: AssetsObject is InValid! %s"), *Progress);
 		return false;
 	}
-	UObject* CDO = Assets->GeneratedClass->GetDefaultObject();
-
+	const FBatchVariable Variable(Assets->GeneratedClass->GetDefaultObject());
+	
 	bool bResult = false;
 	
-	bResult |= UBatchFunctionLibrary::DoProcessors(Processors, Assets, CDO, CDO->GetClass());
+	bResult |= UBatchFunctionLibrary::DoProcessors(Processors, Assets, Context, Variable);
 
 	// 更新进度通知
 	if (ProgressNotification.IsValid())
@@ -187,7 +192,7 @@ bool UBatchBase::ProcessAssets(UBlueprint* Assets)
 	return bResult;
 }
 
-void UBatchBase::OnFinish()
+void UBatchBase::OnFinish(UBatchContext* Context)
 {
 	Status = EBatchStatus::Idle;
 	
@@ -202,6 +207,8 @@ void UBatchBase::OnFinish()
 	// 批处理完成
 	for (const UProcessorBase* Processor : Processors)
 	{
-		Processor->Finish();
+		Processor->Finish(Context);
 	}
+
+	Context->RemoveFromRoot();
 }

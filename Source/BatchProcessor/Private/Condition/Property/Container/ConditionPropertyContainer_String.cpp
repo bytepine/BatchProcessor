@@ -3,28 +3,28 @@
 
 #include "ConditionPropertyContainer_String.h"
 
+#include "BatchDefine.h"
 #include "BatchProcessor.h"
 
-bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const UStruct* Struct)
+bool UConditionPropertyContainer_String::OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Pointer, Struct);
+	bool bResult = Super::OnCheckCondition(Context, Variable);
 
-	void* TargetPoint = nullptr;
-	FProperty* TargetProperty = nullptr;
-	FindProperty(Pointer, Struct, TargetPoint, TargetProperty);
-	if (!TargetPoint || !TargetProperty)
+	FBatchProperty Target;
+	FindProperty(Variable, Target);
+	if (!Target.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckStringContainer: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
-	// 检查属性是否是字符串数组类型
+		// 检查属性是否是字符串数组类型
 	TArray<FString> StringArray;
-	if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(TargetProperty))
+	if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Target.Property))
 	{
 		if (const FStrProperty* StrProperty = CastField<FStrProperty>(ArrayProperty->Inner))
 		{
-			FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < ArrayHelper.Num(); ++i)
 			{
 				const void* ElementPtr = ArrayHelper.GetRawPtr(i);
@@ -35,7 +35,7 @@ bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const U
 		}
 		else if (const FTextProperty* TextProperty = CastField<FTextProperty>(ArrayProperty->Inner))
 		{
-			FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < ArrayHelper.Num(); ++i)
 			{
 				const void* ElementPtr = ArrayHelper.GetRawPtr(i);
@@ -46,7 +46,7 @@ bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const U
 		}
 		else if (const FNameProperty* NameProperty = CastField<FNameProperty>(ArrayProperty->Inner))
 		{
-			FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < ArrayHelper.Num(); ++i)
 			{
 				const void* ElementPtr = ArrayHelper.GetRawPtr(i);
@@ -60,11 +60,11 @@ bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const U
 			UE_LOG(LogBatchProcessor, Warning, TEXT("CheckStringArray: 数据类型错误 [%s]"), *PropertyName);
 		}
 	}
-	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(TargetProperty))
+	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(Target.Property))
 	{
 		if (const FStrProperty* StrProperty = CastField<FStrProperty>(SetProperty->ElementProp))
 		{
-			FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < SetHelper.Num(); ++i)
 			{
 				if (SetHelper.IsValidIndex(i))
@@ -78,7 +78,7 @@ bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const U
 		}
 		else if (const FTextProperty* TextProperty = CastField<FTextProperty>(SetProperty->ElementProp))
 		{
-			FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < SetHelper.Num(); ++i)
 			{
 				if (SetHelper.IsValidIndex(i))
@@ -92,7 +92,7 @@ bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const U
 		}
 		else if (const FNameProperty* NameProperty = CastField<FNameProperty>(SetProperty->ElementProp))
 		{
-			FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < SetHelper.Num(); ++i)
 			{
 				if (SetHelper.IsValidIndex(i))
@@ -109,11 +109,11 @@ bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const U
 			UE_LOG(LogBatchProcessor, Warning, TEXT("CheckStringArray: 数据类型错误 [%s]"), *PropertyName);
 		}
 	}
-	else if (const FMapProperty* MapProperty = CastField<FMapProperty>(TargetProperty))
+	else if (const FMapProperty* MapProperty = CastField<FMapProperty>(Target.Property))
 	{
 		if (const FStrProperty* StrProperty = CastField<FStrProperty>(MapProperty->ValueProp))
 		{
-			FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < MapHelper.Num(); ++i)
 			{
 				if (MapHelper.IsValidIndex(i))
@@ -127,7 +127,7 @@ bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const U
 		}
 		else if (const FTextProperty* TextProperty = CastField<FTextProperty>(MapProperty->ValueProp))
 		{
-			FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < MapHelper.Num(); ++i)
 			{
 				if (MapHelper.IsValidIndex(i))
@@ -141,7 +141,7 @@ bool UConditionPropertyContainer_String::OnCheckCondition(void* Pointer, const U
 		}
 		else if (const FNameProperty* NameProperty = CastField<FNameProperty>(MapProperty->ValueProp))
 		{
-			FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(TargetPoint));
+			FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(Target.Address));
 			for (int32 i = 0; i < MapHelper.Num(); ++i)
 			{
 				if (MapHelper.IsValidIndex(i))

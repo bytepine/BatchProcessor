@@ -10,9 +10,9 @@ UConditionBase::UConditionBase(const FObjectInitializer& ObjectInitializer)
 	
 }
 
-bool UConditionBase::CheckCondition(void* Pointer, const UStruct* Struct)
+bool UConditionBase::CheckCondition(UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = OnCheckCondition(Pointer, Struct);
+	bool bResult = OnCheckCondition(Context, Variable);
 
 	if (bNegation)
 	{
@@ -22,7 +22,7 @@ bool UConditionBase::CheckCondition(void* Pointer, const UStruct* Struct)
 	return bResult;
 }
 
-bool UConditionBase::OnCheckCondition(void* Pointer, const UStruct* Struct)
+bool UConditionBase::OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable)
 {
 	return false;
 }

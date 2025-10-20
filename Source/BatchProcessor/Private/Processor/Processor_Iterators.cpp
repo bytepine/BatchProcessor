@@ -3,9 +3,9 @@
 
 #include "Processor_Iterators.h"
 
-bool UProcessor_Iterators::OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const
+bool UProcessor_Iterators::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	return Super::OnProcessing(Blueprint, Pointer, Struct);
+	return Super::OnProcessing(Assets, Context, Variable);
 }
 
 void UProcessor_Iterators::GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const
