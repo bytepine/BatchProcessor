@@ -32,6 +32,11 @@ void UProcessorBase::Finish(UBatchContext* Context) const
 	}
 }
 
+int64 UProcessorBase::GetUID() const
+{
+	return GetTypeHash(GetName());
+}
+
 void UProcessorBase::GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const
 {
 	

@@ -6,6 +6,15 @@
 #include "ProcessorBase.h"
 #include "UProcessor_Usage.generated.h"
 
+UCLASS()
+class BATCHPROCESSOR_API UBatchScratchPad_Usage : public UBatchScratchPad
+{
+	GENERATED_BODY()
+	
+public:
+	TSet<FString> AssetsSet;
+};
+
 /**
  * 蓝图统计器
  */
@@ -20,4 +29,6 @@ protected:
 	virtual bool OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const override;
 	
 	virtual void OnFinish(UBatchContext* Context) const override;
+
+	virtual UClass* GetScratchPadClass() const override;
 };

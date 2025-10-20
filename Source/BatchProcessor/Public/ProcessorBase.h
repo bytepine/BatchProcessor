@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BatchDefine.h"
 #include "UObject/Object.h"
 #include "ProcessorBase.generated.h"
 
@@ -14,7 +15,7 @@ class UBatchBase;
  * 处理器基类
  */
 UCLASS(Abstract, EditInlineNew)
-class BATCHPROCESSOR_API UProcessorBase : public UObject
+class BATCHPROCESSOR_API UProcessorBase : public UObject, public IBatchScratchPadInterface
 {
 	GENERATED_BODY()
 
@@ -39,6 +40,8 @@ public:
 	 * 批处理完成
 	 */
 	void Finish(UBatchContext* Context) const;
+
+	virtual int64 GetUID() const override;
 protected:
 	/**
 	 * @param Context 上下文

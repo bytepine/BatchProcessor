@@ -22,8 +22,8 @@ class BATCHPROCESSOR_API UBatchFunctionLibrary : public UBlueprintFunctionLibrar
 public:
 	static bool DoProcessor(const UProcessorBase* Processor, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
 	
-	template<typename SPBatchProcessorType = UProcessorBase>
-	static bool DoProcessors(const TArray<SPBatchProcessorType*>& Processors, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
+	template<typename BatchProcessorType = UProcessorBase>
+	static bool DoProcessors(const TArray<BatchProcessorType*>& Processors, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
 
 	static bool FindProperty(const FString& PropertyName, const FBatchVariable& Variable, FBatchProperty& FindProperty);
 

@@ -16,8 +16,6 @@
 
 UBatchBase::UBatchBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
-	, Count(0)
-	, Total(0)
 	, Status(EBatchStatus::Idle)
 {
 	
@@ -52,12 +50,6 @@ void UBatchBase::OnStart()
 	UBatchContext* Context = NewObject<UBatchContext>();
 	Context->AddToRoot();
 	
-	// 批处理开始
-	for (const UProcessorBase* Processor : Processors)
-	{
-		Processor->Start(Context);
-	}
-	
 	// 搜索资产
 	TSet<FAssetData> Assets;
 	for (const UScannerBase* Scanner : Scanners)
@@ -71,10 +63,16 @@ void UBatchBase::OnStart()
 		Filter->Filter(Assets);
 	}
 
-	Total = Assets.Num();
+	Context->Initialized(Assets);
+	
+	// 批处理开始
+	for (const UProcessorBase* Processor : Processors)
+	{
+		Processor->Start(Context);
+	}
 	
 	// 处理资产
-	if (Total > 0)
+	if (Context->GetTotal())
 	{
 		OnProcessing(Context);
 	}
@@ -106,21 +104,23 @@ void UBatchBase::OnProcessing(UBatchContext* Context)
 	}
 	
 	TArray<FSoftObjectPath> PendingArray;
-	const int32 LoadCount = AssetArray.Num() > MAX_LOAD_COUNT ? MAX_LOAD_COUNT : AssetArray.Num();
-	for (int i = 0; i < LoadCount; ++i)
-	{
-		PendingArray.Add(AssetArray.Pop().ToSoftObjectPath());
-	}
 
-	StreamableManager.RequestAsyncLoad(PendingArray, 
-				FStreamableDelegate::CreateUObject(this, &UBatchBase::OnAssetLoaded, Context, PendingArray));
+	if (const int32 Count = Context->GetPendingArray(PendingArray); Count > 0)
+	{
+		StreamableManager.RequestAsyncLoad(PendingArray, 
+			FStreamableDelegate::CreateUObject(this, &UBatchBase::OnAssetLoaded, Context, PendingArray));
+	}
+	else
+	{
+		OnFinish(Context);
+	}
 }
 
 void UBatchBase::OnAssetLoaded(UBatchContext* Context, TArray<FSoftObjectPath> PendingArray)
 {
 	for (auto& TargetPath : PendingArray)
 	{
-		Count++;
+		Context->AddCount();
 
 		if (UBlueprint* LoadedObject = Cast<UBlueprint>(TargetPath.ResolveObject()); IsValid(LoadedObject))
 		{
@@ -156,7 +156,7 @@ void UBatchBase::OnAssetLoaded(UBatchContext* Context, TArray<FSoftObjectPath> P
 		StreamableManager.Unload(TargetPath);
 	}
 	
-	if (Count >= Total)
+	if (Context->IsLoadFinish())
 	{
 		OnFinish(Context);
 	}
@@ -168,8 +168,7 @@ void UBatchBase::OnAssetLoaded(UBatchContext* Context, TArray<FSoftObjectPath> P
 
 bool UBatchBase::ProcessAssets(UBatchContext* Context, UBlueprint* Assets)
 {
-	const float Percent = static_cast<float>(Count) / static_cast<float>(Total) * 100.f;
-	const FString Progress = FString::Printf(TEXT("%d/%d (%.1f%%)"), Count, Total, Percent);
+	const FString Progress = Context->GetProgress();
 	
 	if (!IsValid(Assets))
 	{

@@ -4,6 +4,7 @@ public class BatchProcessor : ModuleRules
 {
     public BatchProcessor(ReadOnlyTargetRules Target) : base(Target)
     {
+        OptimizeCode = CodeOptimization.InShippingBuildsOnly;
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicDependencyModuleNames.AddRange(

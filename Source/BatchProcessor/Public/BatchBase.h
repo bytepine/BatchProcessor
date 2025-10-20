@@ -7,8 +7,6 @@
 #include "UObject/Object.h"
 #include "BatchBase.generated.h"
 
-#define MAX_LOAD_COUNT 5
-
 class UBatchContext;
 class UProcessorBase;
 class UFilterBase;
@@ -98,16 +96,6 @@ protected:
 	TArray<UProcessorBase*> Processors;
 private:
 	/**
-	 * 处理计数
-	 */
-	int32 Count;
-	
-	/**
-	 * 最大计数
-	 */
-	int32 Total;
-
-	/**
 	 * 批处理状态
 	 */
 	EBatchStatus Status;
@@ -121,9 +109,4 @@ private:
 	 * 进度通知
 	 */
 	TSharedPtr<SNotificationItem> ProgressNotification;
-
-	/**
-	 * 待加载列表
-	 */
-	TArray<FAssetData> AssetArray;
 };

@@ -81,3 +81,34 @@ struct BATCHPROCESSOR_API FBatchProperty
 	 */
 	const FProperty* Property;
 };
+
+/**
+ * 批处理便笺簿
+ */
+UCLASS(Abstract)
+class BATCHPROCESSOR_API UBatchScratchPad : public UObject
+{
+	GENERATED_BODY()
+};
+
+/**
+ * 批处理便笺簿接口
+ */
+UINTERFACE(BlueprintType)
+class BATCHPROCESSOR_API UBatchScratchPadInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+/**
+ * 批处理便笺簿接口
+ */
+class BATCHPROCESSOR_API IBatchScratchPadInterface
+{
+	GENERATED_BODY()
+
+public:
+	virtual int64 GetUID() const = 0;
+	
+	virtual UClass* GetScratchPadClass() const;
+};
