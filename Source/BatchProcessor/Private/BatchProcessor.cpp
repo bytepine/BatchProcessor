@@ -2,7 +2,6 @@
 
 #include "BatchBase.h"
 #include "BlueprintEditor.h"
-#include "EditorStyleSet.h"
 #include "Toolkits/AssetEditorToolkitMenuContext.h"
 
 class FBlueprintEditor;
@@ -48,7 +47,35 @@ void FBatchProcessorModule::RegisterBlueprintEditorToolbar()
 				),
 				LOCTEXT("ExecuteBatchProcessing", "执行批处理"),
 				LOCTEXT("ExecuteBatchProcessing_Tooltip", "执行批处理操作"),
-				FSlateIcon(FAppStyle::GetAppStyleSetName(), "Sequencer.PlaybackOptions")
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "GenericPlay")
+			));
+		}
+	}));
+	
+	// 终止批处理
+	Section.AddDynamicEntry("TerminationBatchProcessing", FNewToolMenuSectionDelegate::CreateLambda([](FToolMenuSection& InSection)
+	{
+		const UAssetEditorToolkitMenuContext* MenuContext = InSection.FindContext<UAssetEditorToolkitMenuContext>();
+		if (!MenuContext || !MenuContext->Toolkit.IsValid()) return;
+		
+		FBlueprintEditor* BlueprintEditor = static_cast<FBlueprintEditor*>(MenuContext->Toolkit.Pin().Get());
+		if (BlueprintEditor && BlueprintEditor->GetBlueprintObj() && BlueprintEditor->GetBlueprintObj()->GeneratedClass->IsChildOf<UBatchBase>())
+		{
+			InSection.AddEntry(FToolMenuEntry::InitToolBarButton(
+				"TerminationBatchProcessing",
+				FUIAction(
+					FExecuteAction::CreateLambda([BlueprintEditor]()
+					{
+						if (UBatchBase* Processor = BlueprintEditor->GetBlueprintObj()->GeneratedClass->GetDefaultObject<UBatchBase>())
+						{
+							Processor->Stop();
+						}
+					}),
+					FCanExecuteAction::CreateLambda([]() { return true; })
+				),
+				LOCTEXT("TerminationBatchProcessing", "终止批处理"),
+				LOCTEXT("TerminationBatchProcessing_Tooltip", "终止批处理操作"),
+				FSlateIcon(FAppStyle::GetAppStyleSetName(), "GenericStop")
 			));
 		}
 	}));

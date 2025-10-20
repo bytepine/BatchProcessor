@@ -175,7 +175,7 @@ bool UBatchBase::ProcessAssets(UBlueprint* Assets)
 
 	bool bResult = false;
 	
-	bResult |= UBatchFunctionLibrary::DoProcessors(Processors, CDO, CDO->GetClass());
+	bResult |= UBatchFunctionLibrary::DoProcessors(Processors, Assets, CDO, CDO->GetClass());
 
 	// 更新进度通知
 	if (ProgressNotification.IsValid())

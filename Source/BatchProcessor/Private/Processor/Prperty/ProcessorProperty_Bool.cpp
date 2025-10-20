@@ -1,9 +1,9 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 
 #include "ProcessorProperty_Bool.h"
 
-bool UProcessorProperty_Bool::OnProcessing(void* Pointer, const UStruct* Struct) const
+bool UProcessorProperty_Bool::OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const
 {
-	return Super::OnProcessing(Pointer, Struct);
+	return Super::OnProcessing(Blueprint, Pointer, Struct);
 }

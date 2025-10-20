@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -22,16 +22,18 @@ protected:
 
 	/**
 	 * 处理逻辑
+	 * @param Blueprint 蓝图对象
 	 * @param Pointer 处理对象
 	 * @param Struct 处理结构
 	 * @return 是否有修改
 	 */
-	virtual bool OnProcessing(void* Pointer, const UStruct* Struct) const override;
+	virtual bool OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const override;
 	
 	/**
 	 * 批处理结束
 	 */
 	virtual void OnFinish() const override;
-	
+
+private:
 	TSet<FString> BlueprintSet;
 };

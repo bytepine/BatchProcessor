@@ -17,10 +17,10 @@ class BATCHPROCESSOR_API UBatchFunctionLibrary : public UBlueprintFunctionLibrar
 	GENERATED_BODY()
 
 public:
-	static bool DoProcessor(const UProcessorBase* Processor, void* Pointer, const UStruct* Struct);
+	static bool DoProcessor(UProcessorBase* Processor, UBlueprint* Blueprint, void* Pointer, const UStruct* Struct);
 	
 	template<typename SPBatchProcessorType = UProcessorBase>
-	static bool DoProcessors(const TArray<SPBatchProcessorType*>& Processors, void* Pointer, const UStruct* Struct);
+	static bool DoProcessors(const TArray<SPBatchProcessorType*>& Processors, UBlueprint* Blueprint, void* Pointer, const UStruct* Struct);
 
 	static bool FindProperty(const FString& PropertyName, void* Pointer, const UStruct* Struct, void*& TargetPointer, FProperty*& TargetProperty);
 

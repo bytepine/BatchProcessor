@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 
 #include "ConditionProperty_Int.h"

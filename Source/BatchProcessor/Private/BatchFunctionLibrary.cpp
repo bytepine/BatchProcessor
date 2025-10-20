@@ -5,20 +5,20 @@
 
 #include "ProcessorBase.h"
 
-bool UBatchFunctionLibrary::DoProcessor(const UProcessorBase* Processor, void* Pointer, const UStruct* Struct)
+bool UBatchFunctionLibrary::DoProcessor(UProcessorBase* Processor, UBlueprint* Blueprint, void* Pointer, const UStruct* Struct)
 {
-	return Processor->Processing(Pointer, Struct);
+	return Processor->Processing(Blueprint, Pointer, Struct);
 }
 
 template <typename SPBatchProcessorType>
-bool UBatchFunctionLibrary::DoProcessors(const TArray<SPBatchProcessorType*>& Processors, void* Pointer,
+bool UBatchFunctionLibrary::DoProcessors(const TArray<SPBatchProcessorType*>& Processors, UBlueprint* Blueprint, void* Pointer,
 	const UStruct* Struct)
 {
 	bool bResult = false;
 	
 	for (const UProcessorBase* Processor : Processors)
 	{
-		bResult |= Processor->Processing(Pointer, Struct);
+		bResult |= Processor->Processing(Blueprint, Pointer, Struct);
 	}
 	
 	return bResult;

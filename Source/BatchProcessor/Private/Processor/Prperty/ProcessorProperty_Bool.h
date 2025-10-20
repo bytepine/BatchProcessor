@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -15,7 +15,7 @@ class BATCHPROCESSOR_API UProcessorProperty_Bool : public UProcessorPropertyBase
 	GENERATED_BODY()
 
 protected:
-	virtual bool OnProcessing(void* Pointer, const UStruct* Struct) const override;
+	virtual bool OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const override;
 
 	UPROPERTY(EditDefaultsOnly, Category="属性修改", DisplayName="目标值")
 	bool Value;

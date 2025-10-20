@@ -24,11 +24,12 @@ public:
 	
 	/**
 	 * 处理逻辑
+	 * @param Blueprint 蓝图对象
 	 * @param Pointer 处理对象
 	 * @param Struct 处理结构
 	 * @return 是否有修改
 	 */
-	bool Processing(void* Pointer, const UStruct* Struct) const;
+	bool Processing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const;
 	
 	/**
 	 * 批处理完成
@@ -42,11 +43,12 @@ protected:
 
 	/**
 	 * 处理逻辑
+	 * @param Blueprint 蓝图对象
 	 * @param Pointer 处理对象
 	 * @param Struct 处理结构
 	 * @return 是否有修改
 	 */
-	virtual bool OnProcessing(void* Pointer, const UStruct* Struct) const;
+	virtual bool OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const;
 	
 	/**
 	 * 批处理结束

@@ -1,11 +1,11 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 
 #include "Processor_Iterators.h"
 
-bool UProcessor_Iterators::OnProcessing(void* Pointer, const UStruct* Struct) const
+bool UProcessor_Iterators::OnProcessing(UBlueprint* Blueprint, void* Pointer, const UStruct* Struct) const
 {
-	return Super::OnProcessing(Pointer, Struct);
+	return Super::OnProcessing(Blueprint, Pointer, Struct);
 }
 
 void UProcessor_Iterators::GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const
