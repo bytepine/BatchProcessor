@@ -46,6 +46,7 @@ struct BATCHPROCESSOR_API FBatchVariable
 	/**
 	 * 变量结构
 	 */
+	UPROPERTY(Transient)
 	const UStruct* Struct;
 };
 

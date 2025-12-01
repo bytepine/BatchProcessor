@@ -3,7 +3,17 @@
 
 #include "ProcessorProperty_Int.h"
 
+#include "BatchFunctionLibrary.h"
+
 bool UProcessorProperty_Int::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	return Super::OnProcessing(Assets, Context, Variable);
+	bool bResult = Super::OnProcessing(Assets, Context, Variable);
+	
+	const EBatchSetPropertyResult SetResult = UBatchFunctionLibrary::SetProperty(PropertyName, Variable, Value);
+	
+	LogResult(SetResult);
+	
+	bResult |= SetResult == EBatchSetPropertyResult::Success;
+	
+	return bResult;
 }

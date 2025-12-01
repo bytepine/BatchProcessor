@@ -136,3 +136,186 @@ FProperty* UBatchFunctionLibrary::FindPropertyByName(const UStruct* Struct, cons
 	}
 	return nullptr;
 }
+
+EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
+	const int64 Value)
+{
+	FBatchProperty TargetProperty;
+	if (!FindProperty(PropertyName, Variable, TargetProperty))
+	{
+		return EBatchSetPropertyResult::NotFound;
+	}
+
+	if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(TargetProperty.Property))
+	{
+		if (NumericProperty->IsInteger())
+		{
+			void* PropertyValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+			if (NumericProperty->GetSignedIntPropertyValue(PropertyValuePtr) == Value)
+			{
+				return EBatchSetPropertyResult::Same;
+			}
+			
+			NumericProperty->SetIntPropertyValue(PropertyValuePtr, Value);
+		}
+	}
+	
+	return EBatchSetPropertyResult::Success;
+}
+
+EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
+	const bool Value)
+{
+	FBatchProperty TargetProperty;
+	if (!FindProperty(PropertyName, Variable, TargetProperty))
+	{
+		return EBatchSetPropertyResult::NotFound;
+	}
+
+	if (const FBoolProperty* BoolProperty = CastField<FBoolProperty>(TargetProperty.Property))
+	{
+		void* PropertyValuePtr = BoolProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+		if (BoolProperty->GetPropertyValue(PropertyValuePtr) == Value)
+		{
+			return EBatchSetPropertyResult::Same;
+		}
+		
+		BoolProperty->SetPropertyValue(PropertyValuePtr, Value);
+	}
+	
+	return EBatchSetPropertyResult::Success;
+}
+
+EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
+	const float Value)
+{
+	return SetProperty(PropertyName, Variable, static_cast<double>(Value));
+}
+
+EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
+	const double Value)
+{
+	FBatchProperty TargetProperty;
+	if (!FindProperty(PropertyName, Variable, TargetProperty))
+	{
+		return EBatchSetPropertyResult::NotFound;
+	}
+
+	if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(TargetProperty.Property))
+	{
+		if (NumericProperty->IsFloatingPoint())
+		{
+			void* PropertyValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+			if (FMath::IsNearlyEqual(NumericProperty->GetFloatingPointPropertyValue(PropertyValuePtr), Value))
+			{
+				return EBatchSetPropertyResult::Same;
+			}
+			
+			NumericProperty->SetFloatingPointPropertyValue(PropertyValuePtr, Value);
+		}
+	}
+	
+	return EBatchSetPropertyResult::Success;
+}
+
+EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
+                                                           const FString& Value)
+{
+	FBatchProperty TargetProperty;
+	if (!FindProperty(PropertyName, Variable, TargetProperty))
+	{
+		return EBatchSetPropertyResult::NotFound;
+	}
+
+	if (const FStrProperty* StrProperty = CastField<FStrProperty>(TargetProperty.Property))
+	{
+		void* PropertyValuePtr = StrProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+		if (StrProperty->GetPropertyValue(PropertyValuePtr).Equals(Value))
+		{
+			return EBatchSetPropertyResult::Same;
+		}
+		
+		StrProperty->SetPropertyValue(PropertyValuePtr, Value);
+	}
+	else if (const FNameProperty* NameProperty = CastField<FNameProperty>(TargetProperty.Property))
+	{
+		void* PropertyValuePtr = NameProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+		if (NameProperty->GetPropertyValue(PropertyValuePtr).IsEqual(FName(*Value)))
+		{
+			return EBatchSetPropertyResult::Same;
+		}
+		
+		NameProperty->SetPropertyValue(PropertyValuePtr, FName(*Value));
+	}
+	else if (const FTextProperty* TextProperty = CastField<FTextProperty>(TargetProperty.Property))
+	{
+		void* PropertyValuePtr = TextProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+		if (TextProperty->GetPropertyValue(PropertyValuePtr).ToString().Equals(Value))
+		{
+			return EBatchSetPropertyResult::Same;
+		}
+		
+		TextProperty->SetPropertyValue(PropertyValuePtr, FText::FromString(Value));
+	}
+	else
+	{
+		return EBatchSetPropertyResult::Failed;
+	}
+	
+	return EBatchSetPropertyResult::Success;
+}
+
+EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
+	UObject* Value)
+{
+	FBatchProperty TargetProperty;
+	if (!FindProperty(PropertyName, Variable, TargetProperty))
+	{
+		return EBatchSetPropertyResult::NotFound;
+	}
+	
+	if (const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(TargetProperty.Property))
+	{
+		void* PropertyValuePtr = ObjectProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+		if (ObjectProperty->GetPropertyValue(PropertyValuePtr) == Value)
+		{
+			return EBatchSetPropertyResult::Same;
+		}
+		
+		ObjectProperty->SetPropertyValue(PropertyValuePtr, Value);
+	}
+	else
+	{
+		return EBatchSetPropertyResult::Failed;
+	}
+	
+	return EBatchSetPropertyResult::Success;
+}
+
+EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
+	const FSoftObjectPtr& Value)
+{
+	FBatchProperty TargetProperty;
+	if (!FindProperty(PropertyName, Variable, TargetProperty))
+	{
+		return EBatchSetPropertyResult::NotFound;
+	}
+	
+	if (const FSoftObjectProperty* SoftObjectProperty = CastField<FSoftObjectProperty>(TargetProperty.Property))
+	{
+		void* PropertyValuePtr = SoftObjectProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+		const FSoftObjectPtr& CurrentValue = SoftObjectProperty->GetPropertyValue(PropertyValuePtr);
+		if (CurrentValue.GetLongPackageName() == Value.GetLongPackageName())
+		{
+			return EBatchSetPropertyResult::Same;
+		}
+		
+		SoftObjectProperty->SetPropertyValue(PropertyValuePtr, Value);
+	}
+	else
+	{
+		return EBatchSetPropertyResult::Failed;
+	}
+	
+	return EBatchSetPropertyResult::Success;
+}

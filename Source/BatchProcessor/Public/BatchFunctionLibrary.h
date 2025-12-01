@@ -11,6 +11,16 @@ struct FBatchVariable;
 class UBatchContext;
 class UBatchBase;
 class UProcessorBase;
+
+UENUM(BlueprintType)
+enum class EBatchSetPropertyResult : uint8
+{
+	Success,    // 操作成功
+	Failed,     // 操作失败
+	Same,       // 属性值相同无需修改
+	NotFound,	// 没找到属性
+};
+
 /**
  * 批处理函数库
  */
@@ -28,4 +38,18 @@ public:
 	static bool FindProperty(const FString& PropertyName, const FBatchVariable& Variable, FBatchProperty& FindProperty);
 
 	static FProperty* FindPropertyByName(const UStruct* Struct, const FString& PropertyName);
+	
+	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, const int64 Value);
+	
+	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, const bool Value);
+	
+	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, const float Value);
+	
+	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, const double Value);
+	
+	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, const FString& Value);
+	
+	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, UObject* Value);
+	
+	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, const FSoftObjectPtr& Value);
 };
