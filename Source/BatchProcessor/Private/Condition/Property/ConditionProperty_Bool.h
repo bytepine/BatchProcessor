@@ -22,7 +22,7 @@ class BATCHPROCESSOR_API UConditionProperty_Bool : public UConditionPropertyBase
 	GENERATED_BODY()
 	
 protected:
-	virtual bool OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable) override;
+	virtual bool OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) override;
 	
 	UPROPERTY(EditDefaultsOnly, Category="参数", DisplayName="比较")
 	EBoolComparisonOperators ComparisonOperator;

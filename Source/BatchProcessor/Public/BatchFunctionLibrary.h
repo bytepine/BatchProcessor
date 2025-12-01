@@ -6,6 +6,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "BatchFunctionLibrary.generated.h"
 
+class UConditionBase;
 struct FBatchProperty;
 struct FBatchVariable;
 class UBatchContext;
@@ -52,4 +53,6 @@ public:
 	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, UObject* Value);
 	
 	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, const FSoftObjectPtr& Value);
+	
+	static bool CheckCondition(const TArray<UConditionBase*>& Conditions, const bool bMustPassAllCondition, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
 };

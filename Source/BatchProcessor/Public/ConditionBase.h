@@ -19,9 +19,9 @@ class BATCHPROCESSOR_API UConditionBase : public UObject
 public:
 	explicit UConditionBase(const FObjectInitializer& ObjectInitializer);
 
-	bool CheckCondition(UBatchContext* Context, const FBatchVariable& Variable);
+	bool CheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
 protected:
-	virtual bool OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable);
+	virtual bool OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
 	
 	UPROPERTY(EditDefaultsOnly, Category = "参数", meta=(DisplayName = "取反"))
 	uint8 bNegation : 1;

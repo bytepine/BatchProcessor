@@ -6,9 +6,9 @@
 #include "BatchDefine.h"
 #include "BatchProcessor.h"
 
-bool UConditionProperty_Class::OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionProperty_Class::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Context, Variable);
+	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);
 
 	const UClass* PropertyClass = nullptr;
 	if (PropertyName.IsEmpty())

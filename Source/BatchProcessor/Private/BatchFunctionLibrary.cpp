@@ -4,6 +4,7 @@
 #include "BatchFunctionLibrary.h"
 
 #include "BatchDefine.h"
+#include "ConditionBase.h"
 #include "ProcessorBase.h"
 
 bool UBatchFunctionLibrary::DoProcessor(const UProcessorBase* Processor, const UBlueprint* Assets, UBatchContext* Context,
@@ -318,4 +319,39 @@ EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& Proper
 	}
 	
 	return EBatchSetPropertyResult::Success;
+}
+
+bool UBatchFunctionLibrary::CheckCondition(const TArray<UConditionBase*>& Conditions, const bool bMustPassAllCondition,
+	const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+{
+	bool bPass = true;
+	
+	if (!Conditions.IsEmpty())
+	{
+		if (bMustPassAllCondition)
+		{
+			for (UConditionBase* Condition : Conditions)
+			{
+				if (!Condition->CheckCondition(Assets, Context, Variable))
+				{
+					bPass = false;
+					break;
+				}
+			}
+		}
+		else
+		{
+			bPass = false;
+			for (UConditionBase* Condition : Conditions)
+			{
+				if (Condition->CheckCondition(Assets, Context, Variable))
+				{
+					bPass = true;
+					break;
+				}
+			}
+		}
+	}
+
+	return bPass;
 }

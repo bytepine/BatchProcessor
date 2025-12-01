@@ -5,9 +5,9 @@
 #include "BatchDefine.h"
 #include "BatchProcessor.h"
 
-bool UConditionProperty_String::OnCheckCondition(UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionProperty_String::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Context, Variable);
+	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);
 
 	FBatchProperty Target;
 	FindProperty(Variable, Target);
