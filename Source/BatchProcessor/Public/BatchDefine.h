@@ -7,50 +7,6 @@
 #include "BatchDefine.generated.h"
 
 USTRUCT(BlueprintType)
-struct BATCHPROCESSOR_API FBatchVariable
-{
-	GENERATED_BODY()
-
-	FBatchVariable()
-		: Address(nullptr)
-		, Struct(nullptr)
-	{
-	}
-
-	explicit FBatchVariable(UObject* Object)
-		: Address(Object)
-		, Struct(nullptr)
-	{
-		if (Object)
-		{
-			Struct = Object->GetClass();
-		}
-	}
-	
-	FBatchVariable(void* Address, const UStruct* Struct)
-		: Address(Address)
-		, Struct(Struct)
-	{
-	}
-
-	bool IsValid() const
-	{
-		return Address != nullptr && Struct != nullptr;
-	}
-	
-	/**
-	 * 变量地址
-	 */
-	void* Address;
-
-	/**
-	 * 变量结构
-	 */
-	UPROPERTY(Transient)
-	const UStruct* Struct;
-};
-
-USTRUCT(BlueprintType)
 struct BATCHPROCESSOR_API FBatchProperty
 {
 	GENERATED_BODY()
@@ -81,6 +37,56 @@ struct BATCHPROCESSOR_API FBatchProperty
 	 * 变量结构
 	 */
 	const FProperty* Property;
+};
+
+USTRUCT(BlueprintType)
+struct BATCHPROCESSOR_API FBatchVariable
+{
+	GENERATED_BODY()
+
+	FBatchVariable()
+		: Address(nullptr)
+		, Struct(nullptr)
+	{
+	}
+
+	explicit FBatchVariable(UObject* Object)
+		: Address(Object)
+		, Struct(nullptr)
+	{
+		if (Object)
+		{
+			Struct = Object->GetClass();
+		}
+	}
+	
+	FBatchVariable(void* Address, const UStruct* Struct)
+		: Address(Address)
+		, Struct(Struct)
+	{
+	}
+
+	explicit FBatchVariable(const FBatchProperty& Property)
+		: Address(Property.Address)
+		, Struct(Property.Property->GetOwnerStruct())
+	{
+	}
+	
+	bool IsValid() const
+	{
+		return Address != nullptr && Struct != nullptr;
+	}
+	
+	/**
+	 * 变量地址
+	 */
+	void* Address;
+
+	/**
+	 * 变量结构
+	 */
+	UPROPERTY(Transient)
+	const UStruct* Struct;
 };
 
 /**
