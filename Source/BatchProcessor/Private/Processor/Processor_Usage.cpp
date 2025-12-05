@@ -1,17 +1,17 @@
 ﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 
-#include "UProcessor_Usage.h"
+#include "Processor_Usage.h"
 
 #include "BatchContext.h"
 #include "BatchProcessor.h"
 
-void UUProcessor_Usage::OnStart(UBatchContext* Context) const
+void UProcessor_Usage::OnStart(UBatchContext* Context) const
 {
 	Super::OnStart(Context);
 }
 
-bool UUProcessor_Usage::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
+bool UProcessor_Usage::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
 {
 	if (IsValid(Assets))
 	{
@@ -27,7 +27,7 @@ bool UUProcessor_Usage::OnProcessing(const UBlueprint* Assets, UBatchContext* Co
 	return Super::OnProcessing(Assets, Context, Variable);
 }
 
-void UUProcessor_Usage::OnFinish(UBatchContext* Context) const
+void UProcessor_Usage::OnFinish(UBatchContext* Context) const
 {
 	Super::OnFinish(Context);
 
@@ -52,7 +52,7 @@ void UUProcessor_Usage::OnFinish(UBatchContext* Context) const
 	FMessageDialog::Open(EAppMsgType::Ok, DialogText, DialogTitle);
 }
 
-UClass* UUProcessor_Usage::GetScratchPadClass() const
+UClass* UProcessor_Usage::GetScratchPadClass() const
 {
 	return UBatchScratchPad_Usage::StaticClass();
 }

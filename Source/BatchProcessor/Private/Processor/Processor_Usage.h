@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ProcessorBase.h"
-#include "UProcessor_Usage.generated.h"
+#include "Processor_Usage.generated.h"
 
 UCLASS()
 class BATCHPROCESSOR_API UBatchScratchPad_Usage : public UBatchScratchPad
@@ -19,7 +19,7 @@ public:
  * 蓝图统计器
  */
 UCLASS(DisplayName="蓝图统计器")
-class BATCHPROCESSOR_API UUProcessor_Usage : public UProcessorBase
+class BATCHPROCESSOR_API UProcessor_Usage : public UProcessorBase
 {
 	GENERATED_BODY()
 
