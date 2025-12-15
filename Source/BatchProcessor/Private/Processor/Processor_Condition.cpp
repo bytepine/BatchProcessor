@@ -9,7 +9,7 @@ bool UProcessor_Condition::OnProcessing(const UBlueprint* Assets, UBatchContext*
 {
 	bool bResult = Super::OnProcessing(Assets, Context, Variable);
 
-	if (UBatchFunctionLibrary::CheckCondition(Conditions, bMustPassAllCondition, Assets, Context, Variable))
+	if (UBatchFunctionLibrary::CheckConditions(Conditions, bMustPassAllCondition, Assets, Context, Variable))
 	{
 		bResult |= UBatchFunctionLibrary::DoProcessors(Processors, Assets, Context, Variable);
 	}

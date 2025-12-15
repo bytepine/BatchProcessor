@@ -15,20 +15,20 @@ UScanner_Directory::UScanner_Directory(const FObjectInitializer& ObjectInitializ
 	
 }
 
-bool UScanner_Directory::OnScannerAssets(TSet<FAssetData>& Assets) const
+void UScanner_Directory::OnScannerAssets(TSet<FAssetData>& Assets) const
 {
 	// 路径判断
 	if (Directory.Path.IsEmpty())
 	{
 		UE_LOG(LogBatchProcessor, Error, TEXT("OnScannerAssets: Directory Is Empty!"));
-		return false;
+		return;
 	}
 
 	// 类判断
 	if (!IsValid(BlueprintClass))
 	{
 		UE_LOG(LogBatchProcessor, Error, TEXT("OnScannerAssets: BlueprintClass Is InValid!"));
-		return false;
+		return;
 	}
 
 	// 获取资产注册表
@@ -46,6 +46,4 @@ bool UScanner_Directory::OnScannerAssets(TSet<FAssetData>& Assets) const
 	AssetRegistry.GetAssets(Filter, AssetArray);
 	
 	Assets.Append(AssetArray);
-
-	return true;
 }

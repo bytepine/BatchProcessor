@@ -15,8 +15,8 @@ class BATCHPROCESSOR_API UFilterBase : public UObject
 	GENERATED_BODY()
 
 public:
-	void Filter(TSet<FAssetData>& Assets) const;
+	bool Filter(const UBlueprint* Blueprint) const;
 
 protected:
-	virtual void OnFilter(TSet<FAssetData>& Assets) const;
+	virtual bool OnFilter(const UBlueprint* Blueprint) const;
 };

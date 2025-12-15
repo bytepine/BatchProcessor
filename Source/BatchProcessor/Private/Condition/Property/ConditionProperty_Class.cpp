@@ -6,6 +6,13 @@
 #include "BatchDefine.h"
 #include "BatchProcessor.h"
 
+UConditionProperty_Class::UConditionProperty_Class(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+	, ComparisonOperator(EClassComparisonOperators::Child)
+{
+	
+}
+
 bool UConditionProperty_Class::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
 {
 	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);

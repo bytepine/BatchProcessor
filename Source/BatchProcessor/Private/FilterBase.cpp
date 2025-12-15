@@ -3,12 +3,13 @@
 
 #include "FilterBase.h"
 
-void UFilterBase::Filter(TSet<FAssetData>& Assets) const
+
+bool UFilterBase::Filter(const UBlueprint* Blueprint) const
 {
-	OnFilter(Assets);
+	return OnFilter(Blueprint);
 }
 
-void UFilterBase::OnFilter(TSet<FAssetData>& Assets) const
+bool UFilterBase::OnFilter(const UBlueprint* Blueprint) const
 {
-	
+	return false;
 }

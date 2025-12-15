@@ -18,7 +18,7 @@ public:
 	explicit UScanner_Directory(const FObjectInitializer& ObjectInitializer);
 
 protected:
-	virtual bool OnScannerAssets(TSet<FAssetData>& Assets) const override;
+	virtual void OnScannerAssets(TSet<FAssetData>& Assets) const override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="扫描", meta=(ContentDir, DisplayName="目录"))
 	FDirectoryPath Directory;

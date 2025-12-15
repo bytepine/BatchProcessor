@@ -119,3 +119,12 @@ public:
 	
 	virtual UClass* GetScratchPadClass() const;
 };
+
+UENUM(BlueprintType)
+enum class EClassComparisonOperators : uint8
+{
+	Equal		UMETA(DisplayName = "等于"),
+	NotEqual	UMETA(DisplayName = "不等于"),
+	Super		UMETA(DisplayName = "父类"),
+	Child		UMETA(DisplayName = "子类")
+};

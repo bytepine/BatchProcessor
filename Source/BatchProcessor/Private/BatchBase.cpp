@@ -57,12 +57,6 @@ void UBatchBase::OnStart()
 		Scanner->ScannerAssets(Assets);
 	}
 
-	// 过滤资产
-	for (const UFilterBase* Filter : Filters)
-	{
-		Filter->Filter(Assets);
-	}
-
 	Context->Initialized(Assets);
 	
 	// 批处理开始
@@ -175,11 +169,6 @@ bool UBatchBase::ProcessAssets(UBatchContext* Context, UBlueprint* Assets)
 		UE_LOG(LogBatchProcessor, Error, TEXT("OnProcessing: AssetsObject is InValid! %s"), *Progress);
 		return false;
 	}
-	const FBatchVariable Variable(Assets->GeneratedClass->GetDefaultObject());
-	
-	bool bResult = false;
-	
-	bResult |= UBatchFunctionLibrary::DoProcessors(Processors, Assets, Context, Variable);
 
 	// 更新进度通知
 	if (ProgressNotification.IsValid())
@@ -187,6 +176,17 @@ bool UBatchBase::ProcessAssets(UBatchContext* Context, UBlueprint* Assets)
 		ProgressNotification->SetText(FText::FromString(FString::Printf(TEXT("%s %s"), *Assets->GetName(), *Progress)));
 		ProgressNotification->SetCompletionState(SNotificationItem::CS_Pending);
 	}
+	
+	if (UBatchFunctionLibrary::CheckFilters(Filters, Assets))
+	{
+		return false;
+	}
+	
+	const FBatchVariable Variable(Assets->GeneratedClass->GetDefaultObject());
+	
+	bool bResult = false;
+	
+	bResult |= UBatchFunctionLibrary::DoProcessors(Processors, Assets, Context, Variable);
 	
 	return bResult;
 }

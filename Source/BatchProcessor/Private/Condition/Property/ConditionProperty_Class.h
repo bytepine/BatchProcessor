@@ -3,17 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BatchDefine.h"
 #include "Condition/ConditionPropertyBase.h"
 #include "ConditionProperty_Class.generated.h"
 
-UENUM(BlueprintType)
-enum class EClassComparisonOperators : uint8
-{
-	Equal		UMETA(DisplayName = "等于"),
-	NotEqual	UMETA(DisplayName = "不等于"),
-	Super		UMETA(DisplayName = "父类"),
-	Child		UMETA(DisplayName = "子类")
-};
+
 
 /**
  * 检查类
@@ -23,6 +17,9 @@ class BATCHPROCESSOR_API UConditionProperty_Class : public UConditionPropertyBas
 {
 	GENERATED_BODY()
 
+public:
+	explicit UConditionProperty_Class(const FObjectInitializer& ObjectInitializer);
+	
 protected:
 	virtual bool OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) override;
 	

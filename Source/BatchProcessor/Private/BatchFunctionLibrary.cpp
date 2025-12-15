@@ -5,6 +5,7 @@
 
 #include "BatchDefine.h"
 #include "ConditionBase.h"
+#include "FilterBase.h"
 #include "ProcessorBase.h"
 
 bool UBatchFunctionLibrary::DoProcessor(const UProcessorBase* Processor, const UBlueprint* Assets, UBatchContext* Context,
@@ -321,7 +322,7 @@ EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& Proper
 	return EBatchSetPropertyResult::Success;
 }
 
-bool UBatchFunctionLibrary::CheckCondition(const TArray<UConditionBase*>& Conditions, const bool bMustPassAllCondition,
+bool UBatchFunctionLibrary::CheckConditions(const TArray<UConditionBase*>& Conditions, const bool bMustPassAllCondition,
 	const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
 {
 	bool bPass = true;
@@ -354,4 +355,16 @@ bool UBatchFunctionLibrary::CheckCondition(const TArray<UConditionBase*>& Condit
 	}
 
 	return bPass;
+}
+
+bool UBatchFunctionLibrary::CheckFilters(const TArray<UFilterBase*>& Filters, const UBlueprint* Blueprint)
+{
+	for (const auto Filter : Filters)
+	{
+		if (Filter->Filter(Blueprint))
+		{
+			return true;
+		}
+	}
+	return false;
 }
