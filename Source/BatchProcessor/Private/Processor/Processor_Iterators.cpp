@@ -4,7 +4,6 @@
 #include "Processor_Iterators.h"
 
 #include "BatchFunctionLibrary.h"
-#include "BatchProcessor.h"
 
 bool UProcessor_Iterators::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
 {

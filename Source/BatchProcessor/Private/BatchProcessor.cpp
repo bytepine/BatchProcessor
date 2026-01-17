@@ -1,11 +1,13 @@
 ﻿#include "BatchProcessor.h"
 
 #include "BatchBase.h"
+#include "BatchDefine.h"
 #include "BlueprintEditor.h"
 #include "Toolkits/AssetEditorToolkitMenuContext.h"
 
-class FBlueprintEditor;
 DEFINE_LOG_CATEGORY(LogBatchProcessor);
+
+class FBlueprintEditor;
 
 #define LOCTEXT_NAMESPACE "FBatchProcessorModule"
 

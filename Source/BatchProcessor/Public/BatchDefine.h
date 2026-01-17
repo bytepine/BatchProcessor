@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "BatchDefine.generated.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(LogBatchProcessor, Log, All);
+
 USTRUCT(BlueprintType)
 struct BATCHPROCESSOR_API FBatchProperty
 {

@@ -4,7 +4,6 @@
 #include "ConditionPropertyContainer_String.h"
 
 #include "BatchDefine.h"
-#include "BatchProcessor.h"
 
 bool UConditionPropertyContainer_String::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
 {

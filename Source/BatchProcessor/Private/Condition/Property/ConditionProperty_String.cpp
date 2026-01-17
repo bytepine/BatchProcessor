@@ -2,8 +2,8 @@
 
 
 #include "ConditionProperty_String.h"
+
 #include "BatchDefine.h"
-#include "BatchProcessor.h"
 
 bool UConditionProperty_String::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
 {

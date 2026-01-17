@@ -4,7 +4,6 @@
 #include "ConditionProperty_Float.h"
 
 #include "BatchDefine.h"
-#include "BatchProcessor.h"
 
 bool UConditionProperty_Float::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
 {

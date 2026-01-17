@@ -3,8 +3,6 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogBatchProcessor, Log, All);
-
 class FBatchProcessorModule final : public IModuleInterface
 {
 public:

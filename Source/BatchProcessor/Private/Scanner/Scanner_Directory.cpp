@@ -3,7 +3,7 @@
 
 #include "Scanner_Directory.h"
 
-#include "BatchProcessor.h"
+#include "BatchDefine.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
 

@@ -6,8 +6,6 @@
 #include "BatchContext.h"
 #include "BatchDefine.h"
 #include "BatchFunctionLibrary.h"
-#include "BatchProcessor.h"
-#include "FilterBase.h"
 #include "ProcessorBase.h"
 #include "ScannerBase.h"
 #include "Framework/Notifications/NotificationManager.h"

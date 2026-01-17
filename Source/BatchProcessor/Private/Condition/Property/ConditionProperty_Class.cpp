@@ -4,7 +4,6 @@
 #include "ConditionProperty_Class.h"
 
 #include "BatchDefine.h"
-#include "BatchProcessor.h"
 
 UConditionProperty_Class::UConditionProperty_Class(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)

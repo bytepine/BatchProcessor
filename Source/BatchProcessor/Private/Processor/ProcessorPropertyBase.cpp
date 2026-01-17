@@ -4,7 +4,6 @@
 #include "ProcessorPropertyBase.h"
 
 #include "BatchFunctionLibrary.h"
-#include "BatchProcessor.h"
 
 void UProcessorPropertyBase::LogResult(const EBatchSetPropertyResult Result) const
 {

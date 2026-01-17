@@ -4,7 +4,6 @@
 #include "Processor_Usage.h"
 
 #include "BatchContext.h"
-#include "BatchProcessor.h"
 
 void UProcessor_Usage::OnStart(UBatchContext* Context) const
 {
