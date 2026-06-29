@@ -19,7 +19,7 @@ public:
 	explicit UFilter_GeneratedClass(const FObjectInitializer& ObjectInitializer);
 	
 protected:
-	virtual bool OnFilter(const UBlueprint* Blueprint) const override;
+	virtual bool OnShouldKeep(const FBatchTarget& Target) const override;
 	
 	UPROPERTY(EditDefaultsOnly, Category="参数", DisplayName="比较")
 	EClassComparisonOperators ComparisonOperator;

@@ -25,9 +25,9 @@ void UScanner_Directory::OnScannerAssets(TSet<FAssetData>& Assets) const
 	}
 
 	// 类判断
-	if (!IsValid(BlueprintClass))
+	if (!IsValid(AssetClass))
 	{
-		UE_LOG(LogBatchProcessor, Error, TEXT("OnScannerAssets: BlueprintClass Is InValid!"));
+		UE_LOG(LogBatchProcessor, Error, TEXT("OnScannerAssets: AssetClass Is InValid!"));
 		return;
 	}
 
@@ -39,7 +39,7 @@ void UScanner_Directory::OnScannerAssets(TSet<FAssetData>& Assets) const
 	FARFilter Filter;
 	Filter.PackagePaths.Add(*Directory.Path);
 	Filter.bRecursivePaths = bRecursivePaths;  // 是否递归搜索子文件夹
-	Filter.ClassPaths.Add(BlueprintClass->GetClassPathName());
+	Filter.ClassPaths.Add(AssetClass->GetClassPathName());
 	Filter.bRecursiveClasses = bRecursiveClasses;  // 是否包含子类
 
 	TArray<FAssetData> AssetArray;

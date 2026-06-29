@@ -5,9 +5,9 @@
 
 #include "BatchFunctionLibrary.h"
 
-bool UProcessor_Iterators::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
+bool UProcessor_Iterators::OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	bool bResult = Super::OnProcessing(Assets, Context, Variable);
+	bool bResult = Super::OnProcessing(Target, Context, Variable);
 	
 	FBatchProperty Property;
 	UBatchFunctionLibrary::FindProperty(PropertyName, Variable, Property);
@@ -28,7 +28,7 @@ bool UProcessor_Iterators::OnProcessing(const UBlueprint* Assets, UBatchContext*
 			UE_LOG(LogBatchProcessor, Log, TEXT("Iterators: [%s][%d]"), *PropertyName, i);
 			
 			void* ElementPtr = ArrayHelper.GetRawPtr(i);
-			bResult |= DoProcessor(Assets, Context, FBatchProperty(ElementPtr, ArrayProperty->Inner));
+			bResult |= DoProcessor(Target, Context, FBatchProperty(ElementPtr, ArrayProperty->Inner));
 		}
 	}
 	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(Property.Property))
@@ -43,7 +43,7 @@ bool UProcessor_Iterators::OnProcessing(const UBlueprint* Assets, UBatchContext*
 				UE_LOG(LogBatchProcessor, Log, TEXT("Iterators: [%s][%d]"), *PropertyName, i);
 				
 				void* ElementPtr = SetHelper.GetElementPtr(i);
-				bResult |= DoProcessor(Assets, Context, FBatchProperty(ElementPtr, SetProperty->ElementProp));
+				bResult |= DoProcessor(Target, Context, FBatchProperty(ElementPtr, SetProperty->ElementProp));
 			}
 		}
 	}
@@ -59,7 +59,7 @@ bool UProcessor_Iterators::OnProcessing(const UBlueprint* Assets, UBatchContext*
 				UE_LOG(LogBatchProcessor, Log, TEXT("Iterators: [%s][%d]"), *PropertyName, i);
 				
 				void* ValuePtr = MapHelper.GetValuePtr(i);
-				bResult |= DoProcessor(Assets, Context, FBatchProperty(ValuePtr, MapProperty->ValueProp));
+				bResult |= DoProcessor(Target, Context, FBatchProperty(ValuePtr, MapProperty->ValueProp));
 			}
 		}
 	}
@@ -78,7 +78,7 @@ void UProcessor_Iterators::GetSubProcessors(TArray<UProcessorBase*>& SubProcesso
 	SubProcessors.Append(Processors);
 }
 
-bool UProcessor_Iterators::DoProcessor(const UBlueprint* Assets, UBatchContext* Context,
+bool UProcessor_Iterators::DoProcessor(const FBatchTarget& Target, UBatchContext* Context,
 	const FBatchProperty& Property) const
 {
 	if (!Property.IsValid()) return false;
@@ -101,6 +101,6 @@ bool UProcessor_Iterators::DoProcessor(const UBlueprint* Assets, UBatchContext* 
 
 	if (!Variable.IsValid()) return false;
 	
-	return UBatchFunctionLibrary::DoProcessors(Processors, Assets, Context, Variable);
+	return UBatchFunctionLibrary::DoProcessors(Processors, Target, Context, Variable);
 }
 

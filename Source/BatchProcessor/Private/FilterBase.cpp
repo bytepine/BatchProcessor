@@ -3,13 +3,22 @@
 
 #include "FilterBase.h"
 
+#include "BatchDefine.h"
 
-bool UFilterBase::Filter(const UBlueprint* Blueprint) const
+UFilterBase::UFilterBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+	, bInvert(false)
 {
-	return OnFilter(Blueprint);
 }
 
-bool UFilterBase::OnFilter(const UBlueprint* Blueprint) const
+bool UFilterBase::ShouldKeep(const FBatchTarget& Target) const
 {
-	return false;
+	const bool bKeep = OnShouldKeep(Target);
+	return bInvert ? !bKeep : bKeep;
 }
+
+bool UFilterBase::OnShouldKeep(const FBatchTarget& Target) const
+{
+	return true;
+}
+

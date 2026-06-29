@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "BatchBase.h"
+#include "BatchDefine.h"
 #include "UObject/Object.h"
 #include "BatchContext.generated.h"
 
@@ -27,11 +28,18 @@ class BATCHPROCESSOR_API UBatchContext : public UObject
 
 	FString GetProgress() const;
 
+	/** 获取批处理结果（可读写） */
+	FBatchResult& GetResult() { return Result; }
+
+	/** 获取批处理结果（只读） */
+	const FBatchResult& GetResult() const { return Result; }
+
 	template<typename BatchScratchPadType = UBatchScratchPad>
 	BatchScratchPadType* GetScratchPad(const IBatchScratchPadInterface* Owner);
 	
 protected:
 	friend UBatchBase;
+	friend class UBatchRunner;
 	
 	void Initialized(const TSet<FAssetData>& InAssetSet);
 	
@@ -61,4 +69,9 @@ private:
 
 	UPROPERTY()
 	TMap<int64, UBatchScratchPad*> ScratchPadMap;
+
+	/**
+	 * 批处理结果
+	 */
+	FBatchResult Result;
 };

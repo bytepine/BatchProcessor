@@ -5,20 +5,20 @@
 
 #include "BatchDefine.h"
 
-bool UConditionProperty_Float::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionProperty_Float::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);
+	bool bResult = Super::OnCheckCondition(Target, Context, Variable);
 
-	FBatchProperty Target;
-	FindProperty(Variable, Target);
-	if (!Target.IsValid())
+	FBatchProperty FoundProperty;
+	FindProperty(Variable, FoundProperty);
+	if (!FoundProperty.IsValid())
 	{
 		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
 	// 检查属性是否是浮点数类型
-	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(Target.Property);
+	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(FoundProperty.Property);
 	if (!NumericProperty || !NumericProperty->IsFloatingPoint())
 	{
 		UE_LOG(LogBatchProcessor, Error, TEXT("CheckFloat: 属性类型错误 [%s]"), *PropertyName);
@@ -29,11 +29,11 @@ bool UConditionProperty_Float::OnCheckCondition(const UBlueprint* Assets, UBatch
 	double PropertyValue = 0.0;
 	if (const FDoubleProperty* DoubleProp = CastField<FDoubleProperty>(NumericProperty))
 	{
-		PropertyValue = *DoubleProp->ContainerPtrToValuePtr<double>(Target.Address);
+		PropertyValue = *DoubleProp->ContainerPtrToValuePtr<double>(FoundProperty.Address);
 	}
 	else if (const FFloatProperty* FloatProp = CastField<FFloatProperty>(NumericProperty))
 	{
-		PropertyValue = *FloatProp->ContainerPtrToValuePtr<float>(Target.Address);
+		PropertyValue = *FloatProp->ContainerPtrToValuePtr<float>(FoundProperty.Address);
 	}
 
 	// 使用更精确的double比较容差

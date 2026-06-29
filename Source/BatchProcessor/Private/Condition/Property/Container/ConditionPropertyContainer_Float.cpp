@@ -1,17 +1,17 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 
 #include "ConditionPropertyContainer_Float.h"
 
 #include "BatchDefine.h"
 
-bool UConditionPropertyContainer_Float::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionPropertyContainer_Float::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);
+	bool bResult = Super::OnCheckCondition(Target, Context, Variable);
 
-	FBatchProperty Target;
-	FindProperty(Variable, Target);
-	if (!Target.IsValid())
+	FBatchProperty FoundProperty;
+	FindProperty(Variable, FoundProperty);
+	if (!FoundProperty.IsValid())
 	{
 		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
@@ -19,11 +19,11 @@ bool UConditionPropertyContainer_Float::OnCheckCondition(const UBlueprint* Asset
 
 	// 检查属性是否是整数数组类型
 	TArray<double> DoubleArray;
-	if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(Target.Property))
+	if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(FoundProperty.Property))
 	{
 		if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(ArrayProperty->Inner))
 		{
-			FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(Target.Address));
+			FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(FoundProperty.Address));
 			for (int32 i = 0; i < ArrayHelper.Num(); ++i)
 			{
 				const void* ElementPtr = ArrayHelper.GetRawPtr(i);
@@ -37,11 +37,11 @@ bool UConditionPropertyContainer_Float::OnCheckCondition(const UBlueprint* Asset
 			UE_LOG(LogBatchProcessor, Warning, TEXT("CheckFloatArray: 数据类型错误 [%s]"), *PropertyName);
 		}
 	}
-	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(Target.Property))
+	else if (const FSetProperty* SetProperty = CastField<FSetProperty>(FoundProperty.Property))
 	{
 		if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(SetProperty->ElementProp))
 		{
-			FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(Target.Address));
+			FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(FoundProperty.Address));
 			for (int32 i = 0; i < SetHelper.Num(); ++i)
 			{
 				if (SetHelper.IsValidIndex(i))
@@ -58,11 +58,11 @@ bool UConditionPropertyContainer_Float::OnCheckCondition(const UBlueprint* Asset
 			UE_LOG(LogBatchProcessor, Warning, TEXT("CheckFloatSet: 数据类型错误 [%s]"), *PropertyName);
 		}
 	}
-	else if (const FMapProperty* MapProperty = CastField<FMapProperty>(Target.Property))
+	else if (const FMapProperty* MapProperty = CastField<FMapProperty>(FoundProperty.Property))
 	{
 		if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(MapProperty->ValueProp))
 		{
-			FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(Target.Address));
+			FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(FoundProperty.Address));
 			for (int32 i = 0; i < MapHelper.Num(); ++i)
 			{
 				if (MapHelper.IsValidIndex(i))

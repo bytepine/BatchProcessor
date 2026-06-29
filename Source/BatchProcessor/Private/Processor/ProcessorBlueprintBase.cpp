@@ -10,12 +10,12 @@ void UProcessorBlueprintBase::OnStart(UBatchContext* Context) const
 	OnStartBP(Context);
 }
 
-bool UProcessorBlueprintBase::OnProcessing(const UBlueprint* Assets, UBatchContext* Context,
+bool UProcessorBlueprintBase::OnProcessing(const FBatchTarget& Target, UBatchContext* Context,
 	const FBatchVariable& Variable) const
 {
-	bool bResult = Super::OnProcessing(Assets, Context, Variable);
+	bool bResult = Super::OnProcessing(Target, Context, Variable);
 	
-	bResult |= OnProcessingBP(Assets, Context, Variable);
+	bResult |= OnProcessingBP(Target, Context, Variable);
 	
 	return bResult;
 }

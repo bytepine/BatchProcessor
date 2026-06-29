@@ -5,20 +5,20 @@
 
 #include "BatchDefine.h"
 
-bool UConditionProperty_Bool::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionProperty_Bool::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);
+	bool bResult = Super::OnCheckCondition(Target, Context, Variable);
 
-	FBatchProperty Target;
-	FindProperty(Variable, Target);
-	if (!Target.IsValid())
+	FBatchProperty FoundProperty;
+	FindProperty(Variable, FoundProperty);
+	if (!FoundProperty.IsValid())
 	{
 		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
 	// 检查属性是否是布尔类型
-	const FBoolProperty* BoolProperty = CastField<FBoolProperty>(Target.Property);
+	const FBoolProperty* BoolProperty = CastField<FBoolProperty>(FoundProperty.Property);
 	if (!BoolProperty)
 	{
 		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBool: 属性类型错误 [%s]"), *PropertyName);
@@ -26,7 +26,7 @@ bool UConditionProperty_Bool::OnCheckCondition(const UBlueprint* Assets, UBatchC
 	}
 
 	// 获取布尔值 - 使用标准方法获取
-	const bool bPropertyValue = *BoolProperty->ContainerPtrToValuePtr<bool>(Target.Address);
+	const bool bPropertyValue = *BoolProperty->ContainerPtrToValuePtr<bool>(FoundProperty.Address);
 
 	switch (ComparisonOperator)
 	{

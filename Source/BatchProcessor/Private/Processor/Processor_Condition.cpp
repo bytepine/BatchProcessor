@@ -5,13 +5,13 @@
 
 #include "BatchFunctionLibrary.h"
 
-bool UProcessor_Condition::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
+bool UProcessor_Condition::OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	bool bResult = Super::OnProcessing(Assets, Context, Variable);
+	bool bResult = Super::OnProcessing(Target, Context, Variable);
 
-	if (UBatchFunctionLibrary::CheckConditions(Conditions, bMustPassAllCondition, Assets, Context, Variable))
+	if (UBatchFunctionLibrary::CheckConditions(Conditions, bMustPassAllCondition, Target, Context, Variable))
 	{
-		bResult |= UBatchFunctionLibrary::DoProcessors(Processors, Assets, Context, Variable);
+		bResult |= UBatchFunctionLibrary::DoProcessors(Processors, Target, Context, Variable);
 	}
 	
 	return bResult;

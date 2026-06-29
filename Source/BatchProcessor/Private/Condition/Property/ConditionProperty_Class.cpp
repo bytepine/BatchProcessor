@@ -12,9 +12,9 @@ UConditionProperty_Class::UConditionProperty_Class(const FObjectInitializer& Obj
 	
 }
 
-bool UConditionProperty_Class::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionProperty_Class::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);
+	bool bResult = Super::OnCheckCondition(Target, Context, Variable);
 
 	const UClass* PropertyClass = nullptr;
 	if (PropertyName.IsEmpty())
@@ -23,18 +23,18 @@ bool UConditionProperty_Class::OnCheckCondition(const UBlueprint* Assets, UBatch
 	}
 	else
 	{
-		FBatchProperty Target;
-		FindProperty(Variable, Target);
-		if (!Target.IsValid())
+		FBatchProperty FoundProperty;
+		FindProperty(Variable, FoundProperty);
+		if (!FoundProperty.IsValid())
 		{
 			UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 			return bResult;
 		}
 
 		// 检查属性是否是类属性或对象属性
-		const FClassProperty* ClassProperty = CastField<FClassProperty>(Target.Property);
-		const FSoftClassProperty* SoftClassProperty = CastField<FSoftClassProperty>(Target.Property);
-		const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Target.Property);
+		const FClassProperty* ClassProperty = CastField<FClassProperty>(FoundProperty.Property);
+		const FSoftClassProperty* SoftClassProperty = CastField<FSoftClassProperty>(FoundProperty.Property);
+		const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(FoundProperty.Property);
 		if (!ClassProperty && !SoftClassProperty && !ObjectProperty)
 		{
 			UE_LOG(LogBatchProcessor, Error, TEXT("CheckClass: 属性类型错误 [%s]"), *PropertyName);
@@ -43,17 +43,17 @@ bool UConditionProperty_Class::OnCheckCondition(const UBlueprint* Assets, UBatch
 	
 		if (ClassProperty)
 		{
-			PropertyClass = *ClassProperty->ContainerPtrToValuePtr<UClass*>(Target.Address);
+			PropertyClass = *ClassProperty->ContainerPtrToValuePtr<UClass*>(FoundProperty.Address);
 		}
 		else if (SoftClassProperty)
 		{
-			const TSoftClassPtr<>& SoftClassPtr = *SoftClassProperty->ContainerPtrToValuePtr<TSoftClassPtr<>>(Target.Address);
+			const TSoftClassPtr<>& SoftClassPtr = *SoftClassProperty->ContainerPtrToValuePtr<TSoftClassPtr<>>(FoundProperty.Address);
 			PropertyClass = SoftClassPtr.Get();
 		}
 		else if (ObjectProperty)
 		{
 			// 如果是对象属性，获取对象的类
-			const UObject* PropertyObject = *ObjectProperty->ContainerPtrToValuePtr<UObject*>(Target.Address);
+			const UObject* PropertyObject = *ObjectProperty->ContainerPtrToValuePtr<UObject*>(FoundProperty.Address);
 			PropertyClass = PropertyObject ? PropertyObject->GetClass() : nullptr;
 		}
 	}

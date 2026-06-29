@@ -23,8 +23,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="扫描", meta=(ContentDir, DisplayName="目录"))
 	FDirectoryPath Directory;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="扫描", meta=(DisplayName="蓝图类"))
-	TSubclassOf<UBlueprint> BlueprintClass;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="扫描", meta=(DisplayName="资产类"))
+	TSubclassOf<UObject> AssetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="扫描", meta=(DisplayName="递归搜索子文件夹"))
 	uint8 bRecursivePaths : 1;

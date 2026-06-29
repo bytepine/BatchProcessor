@@ -16,7 +16,7 @@ class BATCHPROCESSOR_API UProcessor_Condition : public UProcessorBase
 	GENERATED_BODY()
 
 protected:
-	virtual bool OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const override;
+	virtual bool OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const override;
 	
 	virtual void GetSubProcessors(TArray<UProcessorBase*>& SubProcessors) const override;
 	

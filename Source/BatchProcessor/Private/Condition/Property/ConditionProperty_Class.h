@@ -21,7 +21,7 @@ public:
 	explicit UConditionProperty_Class(const FObjectInitializer& ObjectInitializer);
 	
 protected:
-	virtual bool OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) override;
+	virtual bool OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) override;
 	
 	UPROPERTY(EditDefaultsOnly, Category="参数", DisplayName="比较")
 	EClassComparisonOperators ComparisonOperator;

@@ -10,6 +10,7 @@ class UFilterBase;
 class UConditionBase;
 struct FBatchProperty;
 struct FBatchVariable;
+struct FBatchTarget;
 class UBatchContext;
 class UBatchBase;
 class UProcessorBase;
@@ -32,10 +33,10 @@ class BATCHPROCESSOR_API UBatchFunctionLibrary : public UBlueprintFunctionLibrar
 	GENERATED_BODY()
 
 public:
-	static bool DoProcessor(const UProcessorBase* Processor, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
-	
+	static bool DoProcessor(const UProcessorBase* Processor, const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);
+
 	template<typename BatchProcessorType = UProcessorBase>
-	static bool DoProcessors(const TArray<BatchProcessorType*>& Processors, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
+	static bool DoProcessors(const TArray<BatchProcessorType*>& Processors, const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);
 
 	static bool FindProperty(const FString& PropertyName, const FBatchVariable& Variable, FBatchProperty& FindProperty);
 
@@ -55,7 +56,7 @@ public:
 	
 	static EBatchSetPropertyResult SetProperty(const FString& PropertyName, const FBatchVariable& Variable, const FSoftObjectPtr& Value);
 	
-	static bool CheckConditions(const TArray<UConditionBase*>& Conditions, const bool bMustPassAllCondition, const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
-	
-	static bool CheckFilters(const TArray<UFilterBase*>& Filters, const UBlueprint* Blueprint);
+	static bool CheckConditions(const TArray<UConditionBase*>& Conditions, const bool bMustPassAllCondition, const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);
+
+	static bool ShouldKeepAll(const TArray<UFilterBase*>& Filters, const FBatchTarget& Target);
 };

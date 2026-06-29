@@ -28,12 +28,12 @@ public:
 	
 	/**
 	 * 处理逻辑
-	 * @param Assets 蓝图资产
+	 * @param Target 目标资产
 	 * @param Context 上下文
 	 * @param Variable 变量
 	 * @return 是否有修改
 	 */
-	bool Processing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const;
+	bool Processing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const;
 	
 	/**
 	 * @param Context 上下文
@@ -51,12 +51,12 @@ protected:
 
 	/**
 	 * 处理逻辑
-	 * @param Assets 蓝图资产
+	 * @param Target 目标资产
 	 * @param Context 上下文
 	 * @param Variable 变量
 	 * @return 是否有修改
 	 */
-	virtual bool OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const;
+	virtual bool OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const;
 	
 	/**
 	 * @param Context 上下文

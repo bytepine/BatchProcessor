@@ -5,20 +5,20 @@
 
 #include "BatchDefine.h"
 
-bool UConditionProperty_Int::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionProperty_Int::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);
+	bool bResult = Super::OnCheckCondition(Target, Context, Variable);
 
-	FBatchProperty Target;
-	FindProperty(Variable, Target);
-	if (!Target.IsValid())
+	FBatchProperty FoundProperty;
+	FindProperty(Variable, FoundProperty);
+	if (!FoundProperty.IsValid())
 	{
 		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
 		// 检查属性是否是整数类型
-	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(Target.Property);
+	const FNumericProperty* NumericProperty = CastField<FNumericProperty>(FoundProperty.Property);
 	if (!NumericProperty || !NumericProperty->IsInteger())
 	{
 		UE_LOG(LogBatchProcessor, Error, TEXT("CheckInt: 属性类型错误 [%s]"), *PropertyName);
@@ -31,35 +31,35 @@ bool UConditionProperty_Int::OnCheckCondition(const UBlueprint* Assets, UBatchCo
 	// 对于整数类型，可以直接使用GetSignedIntPropertyValue/GetUnsignedIntPropertyValue
 	if (const FInt8Property* Int8Prop = CastField<FInt8Property>(NumericProperty))
 	{
-		PropertyValue = *Int8Prop->ContainerPtrToValuePtr<int8>(Target.Address);
+		PropertyValue = *Int8Prop->ContainerPtrToValuePtr<int8>(FoundProperty.Address);
 	}
 	else if (const FInt16Property* Int16Prop = CastField<FInt16Property>(NumericProperty))
 	{
-		PropertyValue = *Int16Prop->ContainerPtrToValuePtr<int16>(Target.Address);
+		PropertyValue = *Int16Prop->ContainerPtrToValuePtr<int16>(FoundProperty.Address);
 	}
 	else if (const FIntProperty* Int32Prop = CastField<FIntProperty>(NumericProperty))
 	{
-		PropertyValue = *Int32Prop->ContainerPtrToValuePtr<int32>(Target.Address);
+		PropertyValue = *Int32Prop->ContainerPtrToValuePtr<int32>(FoundProperty.Address);
 	}
 	else if (const FInt64Property* Int64Prop = CastField<FInt64Property>(NumericProperty))
 	{
-		PropertyValue = *Int64Prop->ContainerPtrToValuePtr<int64>(Target.Address);
+		PropertyValue = *Int64Prop->ContainerPtrToValuePtr<int64>(FoundProperty.Address);
 	}
 	else if (const FByteProperty* ByteProp = CastField<FByteProperty>(NumericProperty))
 	{
-		PropertyValue = *ByteProp->ContainerPtrToValuePtr<uint8>(Target.Address);
+		PropertyValue = *ByteProp->ContainerPtrToValuePtr<uint8>(FoundProperty.Address);
 	}
 	else if (const FUInt16Property* UInt16Prop = CastField<FUInt16Property>(NumericProperty))
 	{
-		PropertyValue = *UInt16Prop->ContainerPtrToValuePtr<uint16>(Target.Address);
+		PropertyValue = *UInt16Prop->ContainerPtrToValuePtr<uint16>(FoundProperty.Address);
 	}
 	else if (const FUInt32Property* UInt32Prop = CastField<FUInt32Property>(NumericProperty))
 	{
-		PropertyValue = *UInt32Prop->ContainerPtrToValuePtr<uint32>(Target.Address);
+		PropertyValue = *UInt32Prop->ContainerPtrToValuePtr<uint32>(FoundProperty.Address);
 	}
 	else if (const FUInt64Property* UInt64Prop = CastField<FUInt64Property>(NumericProperty))
 	{
-		PropertyValue = *UInt64Prop->ContainerPtrToValuePtr<uint64>(Target.Address);
+		PropertyValue = *UInt64Prop->ContainerPtrToValuePtr<uint64>(FoundProperty.Address);
 	}
 
 	switch (ComparisonOperator)

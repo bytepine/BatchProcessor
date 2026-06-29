@@ -8,23 +8,23 @@
 #include "FilterBase.h"
 #include "ProcessorBase.h"
 
-bool UBatchFunctionLibrary::DoProcessor(const UProcessorBase* Processor, const UBlueprint* Assets, UBatchContext* Context,
+bool UBatchFunctionLibrary::DoProcessor(const UProcessorBase* Processor, const FBatchTarget& Target, UBatchContext* Context,
 	const FBatchVariable& Variable)
 {
-	return Processor->Processing(Assets, Context, Variable);
+	return Processor->Processing(Target, Context, Variable);
 }
 
 template <typename SPBatchProcessorType>
-bool UBatchFunctionLibrary::DoProcessors(const TArray<SPBatchProcessorType*>& Processors, const UBlueprint* Assets, UBatchContext* Context,
+bool UBatchFunctionLibrary::DoProcessors(const TArray<SPBatchProcessorType*>& Processors, const FBatchTarget& Target, UBatchContext* Context,
 	const FBatchVariable& Variable)
 {
 	bool bResult = false;
-	
+
 	for (const UProcessorBase* Processor : Processors)
 	{
-		bResult |= Processor->Processing(Assets, Context, Variable);
+		bResult |= Processor->Processing(Target, Context, Variable);
 	}
-	
+
 	return bResult;
 }
 
@@ -150,19 +150,22 @@ EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& Proper
 
 	if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(TargetProperty.Property))
 	{
-		if (NumericProperty->IsInteger())
+		if (!NumericProperty->IsInteger())
 		{
-			void* PropertyValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
-			if (NumericProperty->GetSignedIntPropertyValue(PropertyValuePtr) == Value)
-			{
-				return EBatchSetPropertyResult::Same;
-			}
-			
-			NumericProperty->SetIntPropertyValue(PropertyValuePtr, Value);
+			return EBatchSetPropertyResult::Failed;
 		}
+
+		void* PropertyValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+		if (NumericProperty->GetSignedIntPropertyValue(PropertyValuePtr) == Value)
+		{
+			return EBatchSetPropertyResult::Same;
+		}
+
+		NumericProperty->SetIntPropertyValue(PropertyValuePtr, Value);
+		return EBatchSetPropertyResult::Success;
 	}
-	
-	return EBatchSetPropertyResult::Success;
+
+	return EBatchSetPropertyResult::Failed;
 }
 
 EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
@@ -181,11 +184,12 @@ EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& Proper
 		{
 			return EBatchSetPropertyResult::Same;
 		}
-		
+
 		BoolProperty->SetPropertyValue(PropertyValuePtr, Value);
+		return EBatchSetPropertyResult::Success;
 	}
-	
-	return EBatchSetPropertyResult::Success;
+
+	return EBatchSetPropertyResult::Failed;
 }
 
 EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
@@ -205,19 +209,22 @@ EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& Proper
 
 	if (const FNumericProperty* NumericProperty = CastField<FNumericProperty>(TargetProperty.Property))
 	{
-		if (NumericProperty->IsFloatingPoint())
+		if (!NumericProperty->IsFloatingPoint())
 		{
-			void* PropertyValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
-			if (FMath::IsNearlyEqual(NumericProperty->GetFloatingPointPropertyValue(PropertyValuePtr), Value))
-			{
-				return EBatchSetPropertyResult::Same;
-			}
-			
-			NumericProperty->SetFloatingPointPropertyValue(PropertyValuePtr, Value);
+			return EBatchSetPropertyResult::Failed;
 		}
+
+		void* PropertyValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
+		if (FMath::IsNearlyEqual(NumericProperty->GetFloatingPointPropertyValue(PropertyValuePtr), Value))
+		{
+			return EBatchSetPropertyResult::Same;
+		}
+
+		NumericProperty->SetFloatingPointPropertyValue(PropertyValuePtr, Value);
+		return EBatchSetPropertyResult::Success;
 	}
-	
-	return EBatchSetPropertyResult::Success;
+
+	return EBatchSetPropertyResult::Failed;
 }
 
 EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& PropertyName, const FBatchVariable& Variable,
@@ -323,17 +330,17 @@ EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& Proper
 }
 
 bool UBatchFunctionLibrary::CheckConditions(const TArray<UConditionBase*>& Conditions, const bool bMustPassAllCondition,
-	const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+	const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
 	bool bPass = true;
-	
+
 	if (!Conditions.IsEmpty())
 	{
 		if (bMustPassAllCondition)
 		{
 			for (UConditionBase* Condition : Conditions)
 			{
-				if (!Condition->CheckCondition(Assets, Context, Variable))
+				if (!Condition->CheckCondition(Target, Context, Variable))
 				{
 					bPass = false;
 					break;
@@ -345,7 +352,7 @@ bool UBatchFunctionLibrary::CheckConditions(const TArray<UConditionBase*>& Condi
 			bPass = false;
 			for (UConditionBase* Condition : Conditions)
 			{
-				if (Condition->CheckCondition(Assets, Context, Variable))
+				if (Condition->CheckCondition(Target, Context, Variable))
 				{
 					bPass = true;
 					break;
@@ -357,14 +364,14 @@ bool UBatchFunctionLibrary::CheckConditions(const TArray<UConditionBase*>& Condi
 	return bPass;
 }
 
-bool UBatchFunctionLibrary::CheckFilters(const TArray<UFilterBase*>& Filters, const UBlueprint* Blueprint)
+bool UBatchFunctionLibrary::ShouldKeepAll(const TArray<UFilterBase*>& Filters, const FBatchTarget& Target)
 {
 	for (const auto Filter : Filters)
 	{
-		if (Filter->Filter(Blueprint))
+		if (!Filter->ShouldKeep(Target))
 		{
-			return true;
+			return false;
 		}
 	}
-	return false;
+	return true;
 }

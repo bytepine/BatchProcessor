@@ -5,9 +5,9 @@
 
 #include "BatchFunctionLibrary.h"
 
-bool UProcessorProperty_Bool::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
+bool UProcessorProperty_Bool::OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	bool bResult = Super::OnProcessing(Assets, Context, Variable);
+	bool bResult = Super::OnProcessing(Target, Context, Variable);
 	
 	const EBatchSetPropertyResult SetResult = UBatchFunctionLibrary::SetProperty(PropertyName, Variable, Value);
 	

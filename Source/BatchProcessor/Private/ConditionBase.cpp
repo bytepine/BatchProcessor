@@ -3,6 +3,8 @@
 
 #include "ConditionBase.h"
 
+#include "BatchDefine.h"
+
 UConditionBase::UConditionBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, bNegation(false)
@@ -10,9 +12,9 @@ UConditionBase::UConditionBase(const FObjectInitializer& ObjectInitializer)
 	
 }
 
-bool UConditionBase::CheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionBase::CheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = OnCheckCondition(Assets, Context, Variable);
+	bool bResult = OnCheckCondition(Target, Context, Variable);
 
 	if (bNegation)
 	{
@@ -22,7 +24,7 @@ bool UConditionBase::CheckCondition(const UBlueprint* Assets, UBatchContext* Con
 	return bResult;
 }
 
-bool UConditionBase::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionBase::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
 	return false;
 }

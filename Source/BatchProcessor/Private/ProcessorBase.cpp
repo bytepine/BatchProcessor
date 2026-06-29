@@ -15,9 +15,9 @@ void UProcessorBase::Start(UBatchContext* Context) const
 	}
 }
 
-bool UProcessorBase::Processing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
+bool UProcessorBase::Processing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const
 {
-	return OnProcessing(Assets, Context, Variable);
+	return OnProcessing(Target, Context, Variable);
 }
 
 void UProcessorBase::Finish(UBatchContext* Context) const
@@ -47,7 +47,7 @@ void UProcessorBase::OnStart(UBatchContext* Context) const
 	
 }
 
-bool UProcessorBase::OnProcessing(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) const
+bool UProcessorBase::OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const
 {
 	return false;
 }

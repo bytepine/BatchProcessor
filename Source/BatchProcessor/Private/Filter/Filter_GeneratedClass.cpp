@@ -10,14 +10,14 @@ UFilter_GeneratedClass::UFilter_GeneratedClass(const FObjectInitializer& ObjectI
 	
 }
 
-bool UFilter_GeneratedClass::OnFilter(const UBlueprint* Blueprint) const
+bool UFilter_GeneratedClass::OnShouldKeep(const FBatchTarget& Target) const
 {
-	bool bResult = Super::OnFilter(Blueprint);
+	bool bResult = Super::OnShouldKeep(Target);
 
-	if (IsValid(Blueprint) && GeneratedClass.IsValid())
+	if (Target.IsValid() && GeneratedClass.IsValid())
 	{
-		// 蓝图生成类
-		const UClass* PropertyClass = Blueprint->GeneratedClass.Get();
+		// 资产生成类（蓝图取 GeneratedClass，其它资产取自身的类）
+		const UClass* PropertyClass = Target.GetGeneratedClass();
 		
 		// 获取比较的类指针
 		const UClass* CompareClass = GeneratedClass.Get();
@@ -39,6 +39,6 @@ bool UFilter_GeneratedClass::OnFilter(const UBlueprint* Blueprint) const
 			break;
 		}
 	}
-	
-	return !bResult;
+
+	return bResult;
 }

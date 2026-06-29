@@ -5,13 +5,13 @@
 
 #include "BatchDefine.h"
 
-bool UConditionProperty_String::OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable)
+bool UConditionProperty_String::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
-	bool bResult = Super::OnCheckCondition(Assets, Context, Variable);
+	bool bResult = Super::OnCheckCondition(Target, Context, Variable);
 
-	FBatchProperty Target;
-	FindProperty(Variable, Target);
-	if (!Target.IsValid())
+	FBatchProperty FoundProperty;
+	FindProperty(Variable, FoundProperty);
+	if (!FoundProperty.IsValid())
 	{
 		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
@@ -20,21 +20,21 @@ bool UConditionProperty_String::OnCheckCondition(const UBlueprint* Assets, UBatc
 	// 检查属性是否是字符串类型(FString/FName/FText)
 	FString PropertyValue;
 	
-	const FStrProperty* StrProperty = CastField<FStrProperty>(Target.Property);
-	const FNameProperty* NameProperty = CastField<FNameProperty>(Target.Property);
-	const FTextProperty* TextProperty = CastField<FTextProperty>(Target.Property);
+	const FStrProperty* StrProperty = CastField<FStrProperty>(FoundProperty.Property);
+	const FNameProperty* NameProperty = CastField<FNameProperty>(FoundProperty.Property);
+	const FTextProperty* TextProperty = CastField<FTextProperty>(FoundProperty.Property);
 	
 	if (StrProperty)
 	{
-		PropertyValue = *StrProperty->ContainerPtrToValuePtr<FString>(Target.Address);
+		PropertyValue = *StrProperty->ContainerPtrToValuePtr<FString>(FoundProperty.Address);
 	}
 	else if (NameProperty)
 	{
-		PropertyValue = NameProperty->ContainerPtrToValuePtr<FName>(Target.Address)->ToString();
+		PropertyValue = NameProperty->ContainerPtrToValuePtr<FName>(FoundProperty.Address)->ToString();
 	}
 	else if (TextProperty)
 	{
-		PropertyValue = TextProperty->ContainerPtrToValuePtr<FText>(Target.Address)->ToString();
+		PropertyValue = TextProperty->ContainerPtrToValuePtr<FText>(FoundProperty.Address)->ToString();
 	}
 	else
 	{

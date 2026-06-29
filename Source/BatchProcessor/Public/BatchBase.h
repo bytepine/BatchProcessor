@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/StreamableManager.h"
 #include "UObject/Object.h"
 #include "BatchBase.generated.h"
 
@@ -11,6 +10,7 @@ class UBatchContext;
 class UProcessorBase;
 class UFilterBase;
 class UScannerBase;
+class UBatchRunner;
 
 UENUM()
 enum class EBatchStatus : uint8
@@ -23,12 +23,15 @@ enum class EBatchStatus : uint8
 
 /**
  * 批处理基类
+ *
+ * 仅作为配置模板：扫描器 / 过滤器 / 处理器的内联实例配置存放于此（CDO）。
+ * 实际运行态与调度逻辑由 UBatchRunner 承载，避免 CDO 被运行态污染。
  */
 UCLASS(BlueprintType, Blueprintable, Abstract)
 class BATCHPROCESSOR_API UBatchBase : public UObject
 {
 	GENERATED_UCLASS_BODY()
-	
+
 	/**
 	 * 开始批处理
 	 */
@@ -39,44 +42,8 @@ class BATCHPROCESSOR_API UBatchBase : public UObject
 	 */
 	UFUNCTION(Blueprintable)
 	void Stop();
+
 protected:
-	/**
-	 * 批处理开始
-	 */
-	virtual void OnStart();
-	
-	/**
-	 * 批处理停止
-	 */
-	virtual void OnStop();
-	
-	/**
-	 * 批处理执行
-	 * @param Context 上下文
-	 */
-	virtual void OnProcessing(UBatchContext* Context);
-	
-	/**
-	 * 资产加载完成
-	 * @param Context 上下文
-	 * @param PendingArray 资产列表
-	 */
-	virtual void OnAssetLoaded(UBatchContext* Context, TArray<FSoftObjectPath> PendingArray);
-
-	/**
-	 * 处理资产
-	 * @param Context 上下文
-	 * @param Assets 加载资产
-	 * @return 是否有修改
-	 */
-	virtual bool ProcessAssets(UBatchContext* Context, UBlueprint* Assets);
-	
-	/**
-	 * 批处理完成
-	 * @param Context 上下文
-	 */
-	virtual void OnFinish(UBatchContext* Context);
-
 	/**
 	 * 搜索器实例
 	 */
@@ -94,19 +61,25 @@ protected:
 	 */
 	UPROPERTY(EditDefaultsOnly, Instanced, Category="处理", meta=(DisplayName="处理器"))
 	TArray<UProcessorBase*> Processors;
+
+	/**
+	 * 试运行：仅执行处理流程并记录将要保存的资产，不实际落盘
+	 */
+	UPROPERTY(EditDefaultsOnly, Category="保存", meta=(DisplayName="试运行(不保存)"))
+	bool bDryRun = false;
+
 private:
 	/**
-	 * 批处理状态
+	 * 运行实例完成回调，释放对运行实例的引用
+	 * @param Runner 已完成的运行实例
 	 */
-	EBatchStatus Status;
+	void OnRunnerFinished(UBatchRunner* Runner);
 
 	/**
-	 * 资产加载管理器
+	 * 当前活动的运行实例（运行态全部承载于此）
 	 */
-	FStreamableManager StreamableManager;
+	UPROPERTY()
+	TObjectPtr<UBatchRunner> ActiveRunner;
 
-	/**
-	 * 进度通知
-	 */
-	TSharedPtr<SNotificationItem> ProgressNotification;
+	friend class UBatchRunner;
 };

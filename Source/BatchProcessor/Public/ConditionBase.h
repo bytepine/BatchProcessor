@@ -7,6 +7,7 @@
 #include "ConditionBase.generated.h"
 
 struct FBatchVariable;
+struct FBatchTarget;
 class UBatchContext;
 /**
  * 条件器基类
@@ -19,9 +20,9 @@ class BATCHPROCESSOR_API UConditionBase : public UObject
 public:
 	explicit UConditionBase(const FObjectInitializer& ObjectInitializer);
 
-	bool CheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
+	bool CheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);
 protected:
-	virtual bool OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable);
+	virtual bool OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);
 	
 	UPROPERTY(EditDefaultsOnly, Category = "参数", meta=(DisplayName = "取反"))
 	uint8 bNegation : 1;

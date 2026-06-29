@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -15,7 +15,7 @@ class BATCHPROCESSOR_API UConditionPropertyContainer_Int : public UConditionProp
 	GENERATED_BODY()
 
 protected:
-	virtual bool OnCheckCondition(const UBlueprint* Assets, UBatchContext* Context, const FBatchVariable& Variable) override;
+	virtual bool OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) override;
 
 	bool CheckIntArray(const TArray<int64>& IntArray);
 	
