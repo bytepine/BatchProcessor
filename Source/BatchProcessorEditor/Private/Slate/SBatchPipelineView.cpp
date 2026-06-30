@@ -404,39 +404,41 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
             ]
         ];
 
-    // 组装：描边 → 背景 → 主行 + （可选）子组区域
-    return SNew(SBorder)
-        .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
-        .BorderBackgroundColor(FSlateColor(bSelected
-            ? FLinearColor(BarColor.R, BarColor.G, BarColor.B, 0.6f)
-            : FLinearColor::Transparent))
-        .Padding(bSelected ? 1.f : 0.f)
-        .Cursor(EMouseCursor::Hand)
-        .OnMouseButtonDown_Lambda([this, WeakEntry](const FGeometry&, const FPointerEvent& Event) -> FReply
-        {
-            if (Event.GetEffectingButton() == EKeys::LeftMouseButton)
-            {
-                if (auto Pinned = WeakEntry.Pin()) SelectComponent(Pinned->Component);
-                return FReply::Handled();
-            }
-            return FReply::Unhandled();
-        })
+    // 组装：高亮仅作用于标题行，子组区域无高亮
+    return SNew(SVerticalBox)
+        // 标题行（含选中高亮描边 + 背景 tint）
+        + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SBorder)
-            .BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
-            .BorderBackgroundColor(FSlateColor(BgTint))
-            .Padding(0.f)
+            .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+            .BorderBackgroundColor(FSlateColor(bSelected
+                ? FLinearColor(BarColor.R, BarColor.G, BarColor.B, 0.6f)
+                : FLinearColor::Transparent))
+            .Padding(bSelected ? 1.f : 0.f)
+            .Cursor(EMouseCursor::Hand)
+            .OnMouseButtonDown_Lambda([this, WeakEntry](const FGeometry&, const FPointerEvent& Event) -> FReply
+            {
+                if (Event.GetEffectingButton() == EKeys::LeftMouseButton)
+                {
+                    if (auto Pinned = WeakEntry.Pin()) SelectComponent(Pinned->Component);
+                    return FReply::Handled();
+                }
+                return FReply::Unhandled();
+            })
             [
-                SNew(SVerticalBox)
-                + SVerticalBox::Slot().AutoHeight() [ MainRow ]
-                // 子组区域（展开时可见）
-                + SVerticalBox::Slot().AutoHeight()
-                [
-                    SNew(SBox)
-                    .Visibility(bExpanded ? EVisibility::Visible : EVisibility::Collapsed)
-                    [ BuildSubGroups(Entry) ]
-                ]
+                SNew(SBorder)
+                .BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
+                .BorderBackgroundColor(FSlateColor(BgTint))
+                .Padding(0.f)
+                [ MainRow ]
             ]
+        ]
+        // 子组区域（无选中高亮）
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SBox)
+            .Visibility(bExpanded ? EVisibility::Visible : EVisibility::Collapsed)
+            [ BuildSubGroups(Entry) ]
         ];
 }
 
