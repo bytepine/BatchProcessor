@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "Processor/ProcessorPropertyBase.h"
-#include "Utils/BatchVersionCompat.h"
 #include "ProcessorProperty_Object.generated.h"
 
 /**
@@ -22,10 +21,8 @@ class BATCHPROCESSOR_API UProcessorProperty_Object : public UProcessorPropertyBa
 protected:
 	virtual bool OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const override;
 
+	// UObject* 在所有 UE 版本（4.x ~ 5.x）均合法作为 UPROPERTY 成员类型；
+	// TObjectPtr<> 是 5.0+ 的优化，但无需强制，UHT 无法评估自定义宏链条件。
 	UPROPERTY(EditDefaultsOnly, Category="属性修改", DisplayName="目标对象")
-#if BP_UE_HAS_OBJECT_PTR
-	TObjectPtr<UObject> Value;
-#else
 	UObject* Value;
-#endif
 };
