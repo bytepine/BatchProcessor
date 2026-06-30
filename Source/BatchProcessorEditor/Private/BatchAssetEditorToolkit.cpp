@@ -75,7 +75,7 @@ void FBatchAssetEditorToolkit::InitBatchAssetEditor(EToolkitMode::Type Mode,
             // 左：功能区（控制台 / 预览 / 结果 / 差异）
             ->Split(
                 FTabManager::NewStack()
-                ->SetSizeCoefficient(0.30f)
+                ->SetSizeCoefficient(0.20f)
                 ->AddTab(ConsoleTabId, ETabState::OpenedTab)
                 ->AddTab(PreviewTabId, ETabState::OpenedTab)
                 ->AddTab(ResultTabId, ETabState::OpenedTab)
@@ -84,13 +84,13 @@ void FBatchAssetEditorToolkit::InitBatchAssetEditor(EToolkitMode::Type Mode,
             // 中：流水线（节点流图，核心编辑区）
             ->Split(
                 FTabManager::NewStack()
-                ->SetSizeCoefficient(0.40f)
+                ->SetSizeCoefficient(0.60f)
                 ->AddTab(PipelineTabId, ETabState::OpenedTab)
             )
             // 右：属性面板（编辑选中组件参数）
             ->Split(
                 FTabManager::NewStack()
-                ->SetSizeCoefficient(0.30f)
+                ->SetSizeCoefficient(0.20f)
                 ->AddTab(DetailsTabId, ETabState::OpenedTab)
             )
         );
