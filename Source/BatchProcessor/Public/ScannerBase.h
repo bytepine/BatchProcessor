@@ -41,6 +41,13 @@ public:
 	 */
 	static void FilterAssetsByName(TSet<FAssetData>& Assets, EFilter_NameType NameType, const FString& Regex);
 
+	/**
+	 * 编辑期配置校验（可选实现）
+	 * 将发现的问题追加到 OutErrors，无问题则不写入。
+	 * 由编辑器在流水线视图刷新时聚合调用，不在运行路径上执行。
+	 */
+	virtual void ValidateConfig(TArray<FText>& OutErrors) const {}
+
 protected:
 	virtual void OnScannerAssets(TSet<FAssetData>& Assets) const;
 	

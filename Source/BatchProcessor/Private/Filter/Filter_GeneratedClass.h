@@ -18,6 +18,9 @@ class BATCHPROCESSOR_API UFilter_GeneratedClass : public UFilterBase
 public:
 	explicit UFilter_GeneratedClass(const FObjectInitializer& ObjectInitializer);
 	
+public:
+	virtual void ValidateConfig(TArray<FText>& OutErrors) const override;
+
 protected:
 	virtual bool OnShouldKeep(const FBatchTarget& Target) const override;
 	

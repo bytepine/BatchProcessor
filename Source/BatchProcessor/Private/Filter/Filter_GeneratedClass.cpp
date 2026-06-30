@@ -10,6 +10,21 @@ UFilter_GeneratedClass::UFilter_GeneratedClass(const FObjectInitializer& ObjectI
 	
 }
 
+void UFilter_GeneratedClass::ValidateConfig(TArray<FText>& OutErrors) const
+{
+	if (GeneratedClass.IsNull())
+	{
+		OutErrors.Add(FText::FromString(
+			TEXT("Filter_GeneratedClass: GeneratedClass 未配置 — 运行时将排除全部资产")));
+	}
+	else if (!GeneratedClass.IsValid())
+	{
+		OutErrors.Add(FText::Format(
+			FText::FromString(TEXT("Filter_GeneratedClass: GeneratedClass [{0}] 已配置但尚未加载")),
+			FText::FromString(GeneratedClass.ToString())));
+	}
+}
+
 bool UFilter_GeneratedClass::OnShouldKeep(const FBatchTarget& Target) const
 {
 	// 未配置（IsNull）或已配置但类尚未加载（IsValid=false）时，

@@ -53,6 +53,19 @@ public:
 	 */
 	void SetAssetSaver(const TSharedRef<IBatchAssetSaver>& InSaver);
 
+	/**
+	 * 当前运行上下文（未运行时为 nullptr），供编辑器读取实时进度与结果
+	 */
+	const UBatchContext* GetContext() const { return Context; }
+
+	/**
+	 * 只读预扫描：仅运行 Scanner pre-load 链路，不加载资产，零副作用。
+	 * 返回所有 Scanner 过滤后的候选资产列表（FAssetData）。
+	 * @param Config      批处理配置（通常为 UBatchAsset 实例）
+	 * @param OutAssets   输出候选资产列表
+	 */
+	static void PreviewMatchedAssets(UBatchBase* Config, TArray<FAssetData>& OutAssets);
+
 private:
 	/**
 	 * 批处理开始

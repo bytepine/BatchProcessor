@@ -24,6 +24,9 @@ class BATCHPROCESSOR_API UBatchContext : public UObject
 	
 	int32 GetTotal() const { return Total; }
 
+	/** 已处理（调度）的资产数量，供编辑器进度条计算百分比 */
+	int32 GetCount() const { return Count; }
+
 	bool IsLoadFinish() const;
 
 	FString GetProgress() const;

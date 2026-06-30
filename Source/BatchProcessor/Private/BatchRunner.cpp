@@ -318,3 +318,22 @@ void UBatchRunner::FinalizeProcessors()
 		bCompiledAnyBlueprint = false;
 	}
 }
+
+void UBatchRunner::PreviewMatchedAssets(UBatchBase* Config, TArray<FAssetData>& OutAssets)
+{
+	if (!IsValid(Config)) return;
+
+	// 只走 pre-load 链路：收集 Scanner 候选集，零加载、零副作用
+	TSet<FAssetData> Assets;
+	for (const UScannerBase* Scanner : Config->GetScanners())
+	{
+		if (!IsValid(Scanner)) continue;
+		Scanner->ScannerAssets(Assets);
+	}
+
+	OutAssets.Reserve(Assets.Num());
+	for (const FAssetData& AssetData : Assets)
+	{
+		OutAssets.Add(AssetData);
+	}
+}

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "BatchDefine.h"
 #include "BatchBase.generated.h"
 
 class UBatchContext;
@@ -11,6 +12,8 @@ class UProcessorBase;
 class UFilterBase;
 class UScannerBase;
 class UBatchRunner;
+struct FBatchResult;
+class IBatchProgressReporter;
 
 UENUM(BlueprintType)
 enum class EBatchStatus : uint8
@@ -63,35 +66,76 @@ class BATCHPROCESSOR_API UBatchBase : public UObject
 	UPROPERTY(BlueprintAssignable, Category="批处理")
 	FOnBatchFinished OnBatchFinished;
 
+	// ── 编辑器/C++ 扩展接口 ────────────────────────────────────────────────────
+
+	/**
+	 * 用自定义进度 Reporter 启动批处理（C++ 专用，编辑器工具栏调用）
+	 * @param InReporter  自定义进度回调；nullptr 时回退到默认 Slate 通知
+	 * @param bForceDryRun 覆盖 bDryRun 设置，强制以试运行模式执行
+	 */
+	void StartWithReporter(TSharedPtr<IBatchProgressReporter> InReporter, bool bForceDryRun = false);
+
+	/** 读取上一次批处理的结果快照（未执行时为默认值） */
+	const FBatchResult& GetLastResult() const { return LastResult; }
+
+	/** 当前活动 Runner（未运行时为 nullptr） */
+	const UBatchRunner* GetActiveRunner() const { return ActiveRunner; }
+
+	/** 只读访问 Scanners 列表 */
+	const TArray<UScannerBase*>& GetScanners() const { return Scanners; }
+	/** 只读访问 Filters 列表 */
+	const TArray<UFilterBase*>& GetFilters() const { return Filters; }
+	/** 只读访问 Processors 列表 */
+	const TArray<UProcessorBase*>& GetProcessors() const { return Processors; }
+	/** 当前每批加载数量 */
+	int32 GetBatchSize() const { return BatchSize; }
+	/** 当前是否启用试运行 */
+	bool GetDryRun() const { return bDryRun; }
+
+	// ── 编辑器组件管理（由 SBatchPipelineView 调用，修改后须自行 MarkPackageDirty）──
+
+	void AddScanner(UScannerBase* Scanner);
+	void RemoveScanner(int32 Index);
+	void MoveScanner(int32 FromIndex, int32 ToIndex);
+
+	void AddFilter(UFilterBase* Filter);
+	void RemoveFilter(int32 Index);
+	void MoveFilter(int32 FromIndex, int32 ToIndex);
+
+	void AddProcessor(UProcessorBase* Processor);
+	void RemoveProcessor(int32 Index);
+	void MoveProcessor(int32 FromIndex, int32 ToIndex);
+
 protected:
 	/**
 	 * 搜索器实例
+	 * EditAnywhere：允许在资产实例（UBatchAsset）和蓝图 Class Defaults 中均可编辑
 	 */
-	UPROPERTY(EditDefaultsOnly, Instanced, Category="扫描", meta=(DisplayName="扫描器"))
+	UPROPERTY(EditAnywhere, Instanced, Category="扫描", meta=(DisplayName="扫描器"))
 	TArray<UScannerBase*> Scanners;
 
 	/**
 	 * 过滤器实例
 	 */
-	UPROPERTY(EditDefaultsOnly, Instanced, Category="过滤", meta=(DisplayName="过滤器"))
+	UPROPERTY(EditAnywhere, Instanced, Category="过滤", meta=(DisplayName="过滤器"))
 	TArray<UFilterBase*> Filters;
 
 	/**
 	 * 处理器实例
 	 */
-	UPROPERTY(EditDefaultsOnly, Instanced, Category="处理", meta=(DisplayName="处理器"))
+	UPROPERTY(EditAnywhere, Instanced, Category="处理", meta=(DisplayName="处理器"))
 	TArray<UProcessorBase*> Processors;
 
 	/**
 	 * 每批异步加载的资产数量（较大值加快吞吐，但会占用更多内存）
 	 */
-	UPROPERTY(EditDefaultsOnly, Category="扫描", meta=(DisplayName="每批加载数量", ClampMin=1, ClampMax=50))
+	UPROPERTY(EditAnywhere, Category="扫描", meta=(DisplayName="每批加载数量", ClampMin=1, ClampMax=50))
 	int32 BatchSize = 5;
 
 	/**
 	 * 试运行：仅执行处理流程并记录将要保存的资产，不实际落盘
 	 */
-	UPROPERTY(EditDefaultsOnly, Category="保存", meta=(DisplayName="试运行(不保存)"))
+	UPROPERTY(EditAnywhere, Category="保存", meta=(DisplayName="试运行(不保存)"))
 	bool bDryRun = false;
 
 private:
@@ -107,6 +151,9 @@ private:
 	 */
 	UPROPERTY()
 	UBatchRunner* ActiveRunner;
+
+	/** 上一次批处理结果快照（完成或停止时存档，供编辑器读取） */
+	FBatchResult LastResult;
 
 	friend class UBatchRunner;
 };

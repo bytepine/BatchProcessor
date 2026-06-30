@@ -42,6 +42,13 @@ public:
 	void Finish(UBatchContext* Context) const;
 
 	virtual int64 GetUID() const override;
+
+	/**
+	 * 编辑期配置校验（可选实现）
+	 * 将发现的问题追加到 OutErrors，无问题则不写入。
+	 */
+	virtual void ValidateConfig(TArray<FText>& OutErrors) const {}
+
 protected:
 	/**
 	 * @param Context 上下文

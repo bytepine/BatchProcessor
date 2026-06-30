@@ -28,6 +28,12 @@ public:
 	 */
 	bool ShouldKeep(const FBatchTarget& Target) const;
 
+	/**
+	 * 编辑期配置校验（可选实现）
+	 * 将发现的问题追加到 OutErrors，无问题则不写入。
+	 */
+	virtual void ValidateConfig(TArray<FText>& OutErrors) const {}
+
 protected:
 	virtual bool OnShouldKeep(const FBatchTarget& Target) const;
 

@@ -21,6 +21,10 @@ public:
 	explicit UConditionBase(const FObjectInitializer& ObjectInitializer);
 
 	bool CheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);
+
+	/** 编辑期配置校验（可选实现） */
+	virtual void ValidateConfig(TArray<FText>& OutErrors) const {}
+
 protected:
 	virtual bool OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);
 	
