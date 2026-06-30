@@ -145,10 +145,10 @@ void SBatchPipelineView::PopulateSubGroups(FPipelineEntry& Entry) const
         FObjectProperty* InnerProp = CastField<FObjectProperty>(ArrayProp->Inner);
         if (!InnerProp) continue;
 
+        // 仅扫描子处理器数组；条件数组在属性面板中配置，不在流水线内联展示
         UClass* ElemBase = nullptr;
         UClass* ElemClass = InnerProp->PropertyClass;
-        if      (ElemClass->IsChildOf(UProcessorBase::StaticClass())) ElemBase = UProcessorBase::StaticClass();
-        else if (ElemClass->IsChildOf(UConditionBase::StaticClass()))  ElemBase = UConditionBase::StaticClass();
+        if (ElemClass->IsChildOf(UProcessorBase::StaticClass())) ElemBase = UProcessorBase::StaticClass();
         else continue;
 
         FSubGroupEntry Group;

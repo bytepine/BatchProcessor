@@ -71,9 +71,10 @@ void FBatchAssetEditorToolkit::InitBatchAssetEditor(EToolkitMode::Type Mode,
             if (!ArrayProp) return true;
             const FObjectProperty* InnerProp = CastField<FObjectProperty>(ArrayProp->Inner);
             if (!InnerProp || !InnerProp->PropertyClass) return true;
+            // 仅隐藏子处理器数组（由流水线内联管理）
+            // 条件数组保留在属性面板中配置
             const UClass* ElemClass = InnerProp->PropertyClass;
             if (ElemClass->IsChildOf(UProcessorBase::StaticClass())) return false;
-            if (ElemClass->IsChildOf(UConditionBase::StaticClass()))  return false;
             return true;
         }));
 
