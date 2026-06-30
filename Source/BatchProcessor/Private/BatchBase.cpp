@@ -36,10 +36,17 @@ void UBatchBase::Stop()
 	}
 }
 
-void UBatchBase::OnRunnerFinished(UBatchRunner* Runner)
+bool UBatchBase::IsRunning() const
+{
+	return ActiveRunner && ActiveRunner->IsRunning();
+}
+
+void UBatchBase::OnRunnerFinished(UBatchRunner* Runner, bool bSuccess)
 {
 	if (ActiveRunner == Runner)
 	{
 		ActiveRunner = nullptr;
 	}
+
+	OnBatchFinished.Broadcast(bSuccess);
 }

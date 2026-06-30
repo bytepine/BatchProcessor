@@ -105,7 +105,7 @@ void UBatchRunner::OnStop()
 
 	if (Config)
 	{
-		Config->OnRunnerFinished(this);
+		Config->OnRunnerFinished(this, false);
 	}
 }
 
@@ -296,7 +296,7 @@ void UBatchRunner::OnFinish()
 
 	if (Config)
 	{
-		Config->OnRunnerFinished(this);
+		Config->OnRunnerFinished(this, true);
 	}
 }
 

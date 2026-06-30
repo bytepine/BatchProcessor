@@ -12,7 +12,7 @@ class UFilterBase;
 class UScannerBase;
 class UBatchRunner;
 
-UENUM()
+UENUM(BlueprintType)
 enum class EBatchStatus : uint8
 {
 	Idle,
@@ -20,6 +20,12 @@ enum class EBatchStatus : uint8
 	Processing,
 	Stop
 };
+
+/**
+ * 批处理完成委托
+ * @param bSuccess true = 正常完成；false = 用户中途停止
+ */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBatchFinished, bool, bSuccess);
 
 /**
  * 批处理基类
@@ -33,15 +39,29 @@ class BATCHPROCESSOR_API UBatchBase : public UObject
 	GENERATED_UCLASS_BODY()
 
 	/**
-	 * 开始批处理
+	 * 开始批处理（蓝图与 C++ 均可调用；重复调用时若已在运行则忽略）
 	 */
+	UFUNCTION(BlueprintCallable, Category="批处理")
 	void Start();
 
 	/**
-	 * 停止批处理
+	 * 停止批处理（在下一批次边界生效）
 	 */
-	UFUNCTION(Blueprintable)
+	UFUNCTION(BlueprintCallable, Category="批处理")
 	void Stop();
+
+	/**
+	 * 查询当前是否有批处理正在运行
+	 */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category="批处理")
+	bool IsRunning() const;
+
+	/**
+	 * 批处理结束委托（正常完成 bSuccess=true，用户停止 bSuccess=false）
+	 * 蓝图可在 Class Defaults 或运行时绑定，以便在处理结束后执行后续逻辑。
+	 */
+	UPROPERTY(BlueprintAssignable, Category="批处理")
+	FOnBatchFinished OnBatchFinished;
 
 protected:
 	/**
@@ -76,10 +96,11 @@ protected:
 
 private:
 	/**
-	 * 运行实例完成回调，释放对运行实例的引用
-	 * @param Runner 已完成的运行实例
+	 * 运行实例完成回调，释放引用并广播 OnBatchFinished 委托
+	 * @param Runner    已完成的运行实例
+	 * @param bSuccess  true = 正常完成；false = 用户停止
 	 */
-	void OnRunnerFinished(UBatchRunner* Runner);
+	void OnRunnerFinished(UBatchRunner* Runner, bool bSuccess);
 
 	/**
 	 * 当前活动的运行实例（运行态全部承载于此）

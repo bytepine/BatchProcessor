@@ -62,23 +62,4 @@ FString UBatchContext::GetProgress() const
 	return Progress;
 }
 
-template <typename BatchScratchPadType>
-BatchScratchPadType* UBatchContext::GetScratchPad(const IBatchScratchPadInterface* Owner)
-{
-	if (!Owner)
-	{
-		return nullptr;
-	}
-	
-	UBatchScratchPad* ScratchPad = nullptr;
-	if (const int64 UID = Owner->GetUID(); !ScratchPadMap.Contains(UID))
-	{
-		ScratchPad = NewObject<UBatchScratchPad>(this, Owner->GetScratchPadClass());
-		ScratchPadMap.Add(UID, ScratchPad);
-	}
-	else
-	{
-		ScratchPad = ScratchPadMap[UID];
-	}
-	return Cast<BatchScratchPadType>(ScratchPad);
-}
+// GetScratchPad 模板定义已移至 BatchContext.h，所有翻译单元均可直接实例化，无需显式实例化声明。

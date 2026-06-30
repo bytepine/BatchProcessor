@@ -6,6 +6,8 @@
 #include "BatchDefine.h"
 #include "Utils/BatchVersionCompat.h"
 #include "UObject/SavePackage.h"
+#include "Editor.h"
+#include "Subsystems/AssetEditorSubsystem.h"
 
 EBatchSaveResult FDefaultBatchAssetSaver::SaveAsset(UObject* Asset)
 {
@@ -18,6 +20,15 @@ EBatchSaveResult FDefaultBatchAssetSaver::SaveAsset(UObject* Asset)
 	if (!Package)
 	{
 		return EBatchSaveResult::Failed;
+	}
+
+	// 关闭该资产已打开的编辑器窗口，避免「编辑器持有数据→保存冲突」或保存后编辑器状态不同步
+	if (GEditor)
+	{
+		if (UAssetEditorSubsystem* EditorSubsystem = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
+		{
+			EditorSubsystem->CloseAllEditorsForAsset(Asset);
+		}
 	}
 
 	Asset->MarkPackageDirty();

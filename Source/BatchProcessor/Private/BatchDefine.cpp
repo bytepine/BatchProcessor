@@ -26,11 +26,20 @@ UClass* FBatchTarget::GetGeneratedClass() const
 
 UObject* FBatchTarget::GetVariableObject() const
 {
-	if (UClass* Class = GetGeneratedClass())
+	if (UBlueprint* BP = GetBlueprint())
 	{
-		return Class->GetDefaultObject();
+		// 蓝图资产：变量根为 GeneratedClass 的 CDO（属性默认值存储在 CDO）
+		if (UClass* Class = BP->GeneratedClass.Get())
+		{
+			return Class->GetDefaultObject();
+		}
+		return nullptr;
 	}
-	return nullptr;
+
+	// 非蓝图资产（DataAsset / Material 等）：变量根为资产实例本身
+	// 注意：不能用 Asset->GetClass()->GetDefaultObject()，否则改的是类 CDO
+	// 而 SaveAsset 保存的是资产包，两者不同，改动不会持久化。
+	return Asset;
 }
 
 FBatchVariable FBatchTarget::MakeVariable() const

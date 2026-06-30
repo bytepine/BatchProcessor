@@ -34,8 +34,33 @@ class BATCHPROCESSOR_API UBatchContext : public UObject
 	/** 获取批处理结果（只读） */
 	const FBatchResult& GetResult() const { return Result; }
 
+	/**
+	 * 获取（或懒创建）处理器私有的便笺簿
+	 *
+	 * 模板定义在头文件，所有翻译单元均可实例化，支持任意 UBatchScratchPad 子类。
+	 * 典型用法：在 OnProcessing/OnFinish 中通过 `Context->GetScratchPad<UMyPad>(this)` 取跨资产共享状态。
+	 */
 	template<typename BatchScratchPadType = UBatchScratchPad>
-	BatchScratchPadType* GetScratchPad(const IBatchScratchPadInterface* Owner);
+	BatchScratchPadType* GetScratchPad(const IBatchScratchPadInterface* Owner)
+	{
+		if (!Owner)
+		{
+			return nullptr;
+		}
+
+		UBatchScratchPad* ScratchPad = nullptr;
+		const int64 UID = Owner->GetUID();
+		if (!ScratchPadMap.Contains(UID))
+		{
+			ScratchPad = NewObject<UBatchScratchPad>(this, Owner->GetScratchPadClass());
+			ScratchPadMap.Add(UID, ScratchPad);
+		}
+		else
+		{
+			ScratchPad = ScratchPadMap[UID];
+		}
+		return Cast<BatchScratchPadType>(ScratchPad);
+	}
 	
 protected:
 	friend UBatchBase;
