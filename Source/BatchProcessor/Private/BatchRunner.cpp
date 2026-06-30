@@ -279,6 +279,15 @@ bool UBatchRunner::ProcessAssets(const FBatchTarget& Target)
 	{
 		// 无实际修改，取消事务避免产生空白撤销记录
 		Transaction.Cancel();
+		// Modify() 已将 Package 标为 dirty，但处理器未做任何修改；
+		// 事务取消无法自动回滚 dirty 标记，需手动重置，避免产生大量"未保存"假提示。
+		if (UObject* VarObj = Target.GetVariableObject())
+		{
+			if (UPackage* Pkg = VarObj->GetOutermost())
+			{
+				Pkg->SetDirtyFlag(false);
+			}
+		}
 	}
 
 	return bResult;
