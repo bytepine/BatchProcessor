@@ -106,6 +106,8 @@ graph TD
 | Processor | `UProcessor_Usage` | 资产统计器，从 `FBatchResult` 读取并弹窗汇总 |
 | Processor | `UProcessorBlueprintBase` | 蓝图可继承的处理器基类（BP 事件转发） |
 | ProcessorProperty | `UProcessorProperty_Bool/Int/Float/String/Material` | 修改对应类型属性 |
+| ProcessorProperty | `UProcessorProperty_Object` | 修改 `UObject` 硬引用属性 |
+| ProcessorProperty | `UProcessorProperty_SoftObject` | 修改 `FSoftObjectPath` 软引用属性 |
 | Condition | `UConditionProperty_Bool/Class/Int/Float/String` | 针对属性判定 |
 | Condition | `UConditionPropertyContainer_Bool/Int/Float/String` | 针对容器（Array/Set/Map）属性判定 |
 
@@ -193,8 +195,13 @@ Processors:
   - 若启用了 `bDryRun`，资产不会落盘（仅记录），关闭该选项即可。
 - **过滤器语义是怎样的？**
   - `ShouldKeep` 返回 `true` = **保留**资产，`false` = 排除。`OnShouldKeep` 返回「是否匹配保留条件」，基类用 `bInvert` 翻转。所有过滤器的 `ShouldKeep` 都返回 `true` 时资产才保留。
+  - **安全默认**：`UFilter_GeneratedClass` 若 `GeneratedClass` 未配置或尚未加载，会无论 `bInvert` 取何值都**排除全部资产**并输出 Warning，防止漏配静默放行。`UConditionProperty_Class` 同理。
 - **支持哪些资产类型？**
   - 任意 `UObject` 派生类型。蓝图变量根取 `GeneratedClass` 的 CDO；其它资产（DataAsset / Material 等）变量根取资产自身。
+- **容器条件 Include / Included / Equal 的语义是什么？**
+  - `Include`（包含目标）：配置的 `Values` 集合（含重复）是属性容器的**子多重集**。即 `Values=[1,1]` 要求容器中至少有两个 `1`。
+  - `Included`（被目标包含）：属性容器是配置的 `Values` 集合的**子多重集**。
+  - `Equal`（等于）：两者为相同多重集（元素与数量完全一致）。由于 `TSet / TMap` 迭代顺序不确定，比较前会对双方排序，结果稳定。
 - **如何在 CI / 命令行中运行？**
   - 注入 `FNullBatchProgressReporter`（无 UI）与自定义 `IBatchAssetSaver`（如接入源码管理 checkout），即可在无编辑器交互的环境下运行。
 

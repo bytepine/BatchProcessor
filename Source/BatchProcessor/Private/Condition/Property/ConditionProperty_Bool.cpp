@@ -13,7 +13,7 @@ bool UConditionProperty_Bool::OnCheckCondition(const FBatchTarget& Target, UBatc
 	FindProperty(Variable, FoundProperty);
 	if (!FoundProperty.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBool: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
@@ -25,8 +25,8 @@ bool UConditionProperty_Bool::OnCheckCondition(const FBatchTarget& Target, UBatc
 		return bResult;
 	}
 
-	// 获取布尔值 - 使用标准方法获取
-	const bool bPropertyValue = *BoolProperty->ContainerPtrToValuePtr<bool>(FoundProperty.Address);
+	// 使用 GetPropertyValue 读取布尔值，正确处理位域（bitfield）布尔属性
+	const bool bPropertyValue = BoolProperty->GetPropertyValue(BoolProperty->ContainerPtrToValuePtr<void>(FoundProperty.Address));
 
 	switch (ComparisonOperator)
 	{

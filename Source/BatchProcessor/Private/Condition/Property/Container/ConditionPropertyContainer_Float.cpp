@@ -13,7 +13,7 @@ bool UConditionPropertyContainer_Float::OnCheckCondition(const FBatchTarget& Tar
 	FindProperty(Variable, FoundProperty);
 	if (!FoundProperty.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckFloatContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
@@ -98,62 +98,67 @@ bool UConditionPropertyContainer_Float::CheckFloatArray(const TArray<double>& Fl
 	{
 	case EBoolContainerComparisonOperators::Include:
 		{
-			if (FloatArray.Num() >= Values.Num())
+			// 多重性语义：Values 中每个值（含重复）消耗 FloatArray 中一个匹配位置
+			TArray<double> Remaining = FloatArray;
+			bResult = true;
+			for (const double& Value : Values)
 			{
-				bResult = true;
-				for (const double& Value : Values)
+				bool bFound = false;
+				for (int32 j = 0; j < Remaining.Num(); ++j)
 				{
-					bool bFound = false;
-					for (const double& ArrayValue : FloatArray)
+					if (FMath::Abs(Remaining[j] - Value) < Tolerance)
 					{
-						if (FMath::Abs(ArrayValue - Value) < Tolerance)
-						{
-							bFound = true;
-							break;
-						}
-					}
-					if (!bFound)
-					{
-						bResult = false;
+						Remaining.RemoveAt(j, 1, EAllowShrinking::No);
+						bFound = true;
 						break;
 					}
+				}
+				if (!bFound)
+				{
+					bResult = false;
+					break;
 				}
 			}
 		}
 		break;
 	case EBoolContainerComparisonOperators::Included:
 		{
-			if (Values.Num() >= FloatArray.Num())
+			// 多重性语义：FloatArray 中每个值（含重复）消耗 Values 中一个匹配位置
+			TArray<double> RemainingValues = Values;
+			bResult = true;
+			for (const double& ArrayValue : FloatArray)
 			{
-				bResult = true;
-				for (const double& ArrayValue : FloatArray)
+				bool bFound = false;
+				for (int32 j = 0; j < RemainingValues.Num(); ++j)
 				{
-					bool bFound = false;
-					for (const double& Value : Values)
+					if (FMath::Abs(RemainingValues[j] - ArrayValue) < Tolerance)
 					{
-						if (FMath::Abs(ArrayValue - Value) < Tolerance)
-						{
-							bFound = true;
-							break;
-						}
-					}
-					if (!bFound)
-					{
-						bResult = false;
+						RemainingValues.RemoveAt(j, 1, EAllowShrinking::No);
+						bFound = true;
 						break;
 					}
+				}
+				if (!bFound)
+				{
+					bResult = false;
+					break;
 				}
 			}
 		}
 		break;
 	case EBoolContainerComparisonOperators::Equal:
 		{
+			// Set/Map 迭代顺序不确定，排序后再按容差逐元素比较
 			if (FloatArray.Num() == Values.Num())
 			{
+				TArray<double> SortedArray = FloatArray;
+				TArray<double> SortedValues = Values;
+				SortedArray.Sort();
+				SortedValues.Sort();
 				bResult = true;
-				for (int32 i = 0; i < FloatArray.Num(); ++i)
+				for (int32 i = 0; i < SortedArray.Num(); ++i)
 				{
-					if (FMath::Abs(FloatArray[i] - Values[i]) >= Tolerance)
+					if (FMath::Abs(SortedArray[i] - SortedValues[i]) >= Tolerance)
 					{
 						bResult = false;
 						break;

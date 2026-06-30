@@ -13,11 +13,20 @@ bool UConditionPropertyContainer_Int::OnCheckCondition(const FBatchTarget& Targe
 	FindProperty(Variable, FoundProperty);
 	if (!FoundProperty.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckIntContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
-		// 检查属性是否是整数数组类型
+		// 判断 FNumericProperty 是否为无符号整数类型（FNumericProperty 无 IsUnsignedInteger API）
+	auto IsUnsignedIntProp = [](const FNumericProperty* Prop) -> bool
+	{
+		return CastField<FByteProperty>(Prop) != nullptr
+			|| CastField<FUInt16Property>(Prop) != nullptr
+			|| CastField<FUInt32Property>(Prop) != nullptr
+			|| CastField<FUInt64Property>(Prop) != nullptr;
+	};
+
+	// 检查属性是否是整数数组类型
 	TArray<int64> IntArray;
 	if (const FArrayProperty* ArrayProperty = CastField<FArrayProperty>(FoundProperty.Property))
 	{
@@ -25,11 +34,14 @@ bool UConditionPropertyContainer_Int::OnCheckCondition(const FBatchTarget& Targe
 		{
 			if (NumericProperty->IsInteger())
 			{
+				const bool bUnsigned = IsUnsignedIntProp(NumericProperty);
 				FScriptArrayHelper ArrayHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(FoundProperty.Address));
 				for (int32 i = 0; i < ArrayHelper.Num(); ++i)
 				{
 					const void* ElementPtr = ArrayHelper.GetRawPtr(i);
-					const int64 ElementValue = NumericProperty->GetSignedIntPropertyValue(ElementPtr);
+					const int64 ElementValue = bUnsigned
+						? static_cast<int64>(NumericProperty->GetUnsignedIntPropertyValue(ElementPtr))
+						: NumericProperty->GetSignedIntPropertyValue(ElementPtr);
 
 					IntArray.Add(ElementValue);
 				}
@@ -46,13 +58,16 @@ bool UConditionPropertyContainer_Int::OnCheckCondition(const FBatchTarget& Targe
 		{
 			if (NumericProperty->IsInteger())
 			{
+				const bool bUnsigned = IsUnsignedIntProp(NumericProperty);
 				FScriptSetHelper SetHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(FoundProperty.Address));
 				for (int32 i = 0; i < SetHelper.Num(); ++i)
 				{
 					if (SetHelper.IsValidIndex(i))
 					{
 						const void* ElementPtr = SetHelper.GetElementPtr(i);
-						const int64 ElementValue = NumericProperty->GetSignedIntPropertyValue(ElementPtr);
+						const int64 ElementValue = bUnsigned
+							? static_cast<int64>(NumericProperty->GetUnsignedIntPropertyValue(ElementPtr))
+							: NumericProperty->GetSignedIntPropertyValue(ElementPtr);
 
 						IntArray.Add(ElementValue);
 					}
@@ -70,13 +85,16 @@ bool UConditionPropertyContainer_Int::OnCheckCondition(const FBatchTarget& Targe
 		{
 			if (NumericProperty->IsInteger())
 			{
+				const bool bUnsigned = IsUnsignedIntProp(NumericProperty);
 				FScriptMapHelper MapHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(FoundProperty.Address));
 				for (int32 i = 0; i < MapHelper.Num(); ++i)
 				{
 					if (MapHelper.IsValidIndex(i))
 					{
 						const void* ElementPtr = MapHelper.GetValuePtr(i);
-						const int64 ElementValue = NumericProperty->GetSignedIntPropertyValue(ElementPtr);
+						const int64 ElementValue = bUnsigned
+							? static_cast<int64>(NumericProperty->GetUnsignedIntPropertyValue(ElementPtr))
+							: NumericProperty->GetSignedIntPropertyValue(ElementPtr);
 
 						IntArray.Add(ElementValue);
 					}
@@ -102,44 +120,51 @@ bool UConditionPropertyContainer_Int::CheckIntArray(const TArray<int64>& IntArra
 	{
 	case EBoolContainerComparisonOperators::Include:
 		{
-			if (IntArray.Num() >= Values.Num())
+			// 多重性语义：Values 中每个值（含重复）都必须在 IntArray 中找到不同位置的匹配
+			TArray<int64> Remaining = IntArray;
+			bResult = true;
+			for (const int64& Value : Values)
 			{
-				bResult = true;
-				for (const int64& Value : Values)
+				const int32 Idx = Remaining.Find(Value);
+				if (Idx == INDEX_NONE)
 				{
-					if (!IntArray.Contains(Value))
-					{
-						bResult = false;
-						break;
-					}
+					bResult = false;
+					break;
 				}
+				Remaining.RemoveAt(Idx, 1, EAllowShrinking::No);
 			}
 		}
 		break;
 	case EBoolContainerComparisonOperators::Included:
 		{
-			if (Values.Num() >= IntArray.Num())
+			// 多重性语义：IntArray 中每个值（含重复）都必须在 Values 中找到不同位置的匹配
+			TArray<int64> RemainingValues = Values;
+			bResult = true;
+			for (const int64& ArrayValue : IntArray)
 			{
-				bResult = true;
-				for (const int64& ArrayValue : IntArray)
+				const int32 Idx = RemainingValues.Find(ArrayValue);
+				if (Idx == INDEX_NONE)
 				{
-					if (!Values.Contains(ArrayValue))
-					{
-						bResult = false;
-						break;
-					}
+					bResult = false;
+					break;
 				}
+				RemainingValues.RemoveAt(Idx, 1, EAllowShrinking::No);
 			}
 		}
 		break;
 	case EBoolContainerComparisonOperators::Equal:
 		{
+			// Set/Map 迭代顺序不确定，排序后再比较
 			if (IntArray.Num() == Values.Num())
 			{
+				TArray<int64> SortedArray = IntArray;
+				TArray<int64> SortedValues = Values;
+				SortedArray.Sort();
+				SortedValues.Sort();
 				bResult = true;
-				for (int32 i = 0; i < IntArray.Num(); ++i)
+				for (int32 i = 0; i < SortedArray.Num(); ++i)
 				{
-					if (IntArray[i] != Values[i])
+					if (SortedArray[i] != SortedValues[i])
 					{
 						bResult = false;
 						break;

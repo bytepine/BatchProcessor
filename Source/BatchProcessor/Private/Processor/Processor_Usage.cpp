@@ -12,6 +12,12 @@ void UProcessor_Usage::OnFinish(UBatchContext* Context) const
 {
 	Super::OnFinish(Context);
 
+	if (!IsValid(Context))
+	{
+		UE_LOG(LogBatchProcessor, Warning, TEXT("Processor_Usage::OnFinish: Context is null, skipping usage report"));
+		return;
+	}
+
 	const FBatchResult& Result = Context->GetResult();
 
 	FString Lines;

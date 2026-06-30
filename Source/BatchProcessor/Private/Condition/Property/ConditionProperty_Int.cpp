@@ -13,7 +13,7 @@ bool UConditionProperty_Int::OnCheckCondition(const FBatchTarget& Target, UBatch
 	FindProperty(Variable, FoundProperty);
 	if (!FoundProperty.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckInt: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 

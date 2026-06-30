@@ -10,16 +10,16 @@ void UProcessorPropertyBase::LogResult(const EBatchSetPropertyResult Result) con
 	switch (Result)
 	{
 	case EBatchSetPropertyResult::Success:
-		UE_LOG(LogBatchProcessor, Warning, TEXT("SetBool: 设置属性成功 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Log, TEXT("SetProperty: 设置属性成功 [%s]"), *PropertyName);
 		break;
 	case EBatchSetPropertyResult::Failed:
-		UE_LOG(LogBatchProcessor, Warning, TEXT("SetBool: 设置属性失败 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("SetProperty: 设置属性失败 [%s]"), *PropertyName);
 		break;
 	case EBatchSetPropertyResult::Same:
-		UE_LOG(LogBatchProcessor, Warning, TEXT("SetBool: 属性值相同 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Log, TEXT("SetProperty: 属性值相同，跳过 [%s]"), *PropertyName);
 		break;
 	case EBatchSetPropertyResult::NotFound:
-		UE_LOG(LogBatchProcessor, Warning, TEXT("SetBool: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("SetProperty: 没找到属性 [%s]"), *PropertyName);
 		break;
 	}
 }

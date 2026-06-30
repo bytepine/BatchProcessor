@@ -13,7 +13,7 @@ bool UConditionPropertyContainer_String::OnCheckCondition(const FBatchTarget& Ta
 	FindProperty(Variable, FoundProperty);
 	if (!FoundProperty.IsValid())
 	{
-		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckBoolContainer: 没找到属性 [%s]"), *PropertyName);
+		UE_LOG(LogBatchProcessor, Warning, TEXT("CheckStringContainer: 没找到属性 [%s]"), *PropertyName);
 		return bResult;
 	}
 
@@ -171,44 +171,51 @@ bool UConditionPropertyContainer_String::CheckStringArray(const TArray<FString>&
 	{
 	case EBoolContainerComparisonOperators::Include:
 		{
-			if (StringArray.Num() >= Values.Num())
+			// 多重性语义：Values 中每个值（含重复）消耗 StringArray 中一个匹配位置
+			TArray<FString> Remaining = StringArray;
+			bResult = true;
+			for (const FString& Value : Values)
 			{
-				bResult = true;
-				for (const FString& Value : Values)
+				const int32 Idx = Remaining.Find(Value);
+				if (Idx == INDEX_NONE)
 				{
-					if (!StringArray.Contains(Value))
-					{
-						bResult = false;
-						break;
-					}
+					bResult = false;
+					break;
 				}
+				Remaining.RemoveAt(Idx, 1, EAllowShrinking::No);
 			}
 		}
 		break;
 	case EBoolContainerComparisonOperators::Included:
 		{
-			if (Values.Num() >= StringArray.Num())
+			// 多重性语义：StringArray 中每个值（含重复）消耗 Values 中一个匹配位置
+			TArray<FString> RemainingValues = Values;
+			bResult = true;
+			for (const FString& ArrayValue : StringArray)
 			{
-				bResult = true;
-				for (const FString& ArrayValue : StringArray)
+				const int32 Idx = RemainingValues.Find(ArrayValue);
+				if (Idx == INDEX_NONE)
 				{
-					if (!Values.Contains(ArrayValue))
-					{
-						bResult = false;
-						break;
-					}
+					bResult = false;
+					break;
 				}
+				RemainingValues.RemoveAt(Idx, 1, EAllowShrinking::No);
 			}
 		}
 		break;
 	case EBoolContainerComparisonOperators::Equal:
 		{
+			// Set/Map 迭代顺序不确定，排序后再逐元素比较
 			if (StringArray.Num() == Values.Num())
 			{
+				TArray<FString> SortedArray = StringArray;
+				TArray<FString> SortedValues = Values;
+				SortedArray.Sort();
+				SortedValues.Sort();
 				bResult = true;
-				for (int32 i = 0; i < StringArray.Num(); ++i)
+				for (int32 i = 0; i < SortedArray.Num(); ++i)
 				{
-					if (StringArray[i] != Values[i])
+					if (SortedArray[i] != SortedValues[i])
 					{
 						bResult = false;
 						break;

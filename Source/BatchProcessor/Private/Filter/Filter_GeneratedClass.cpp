@@ -12,13 +12,22 @@ UFilter_GeneratedClass::UFilter_GeneratedClass(const FObjectInitializer& ObjectI
 
 bool UFilter_GeneratedClass::OnShouldKeep(const FBatchTarget& Target) const
 {
-	// 未配置比较类时视为「配置错误」，排除所有资产并发出警告
-	// 避免「漏配 = 静默放行全部资产」的危险默认行为
-	if (!GeneratedClass.IsValid())
+	// 未配置（IsNull）或已配置但类尚未加载（IsValid=false）时，
+	// 视为「配置错误」，排除所有资产。
+	// 关键：返回 bInvert 而非固定 false，使 ShouldKeep 在 bInvert=true 时
+	// 最终结果依然为 false（排除），防止取反绕过安全策略。
+	if (GeneratedClass.IsNull())
 	{
 		UE_LOG(LogBatchProcessor, Warning,
 			TEXT("Filter_GeneratedClass: GeneratedClass is not set — excluding all assets to prevent unintended batch processing"));
-		return false;
+		return bInvert;
+	}
+	if (!GeneratedClass.IsValid())
+	{
+		UE_LOG(LogBatchProcessor, Warning,
+			TEXT("Filter_GeneratedClass: GeneratedClass [%s] is set but not loaded — excluding all assets. Ensure the class is loaded before running."),
+			*GeneratedClass.ToString());
+		return bInvert;
 	}
 
 	bool bResult = Super::OnShouldKeep(Target);
