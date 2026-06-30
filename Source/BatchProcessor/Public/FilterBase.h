@@ -34,6 +34,10 @@ public:
 	 */
 	virtual void ValidateConfig(TArray<FText>& OutErrors) const {}
 
+	/** 备注：仅用于在流水线视图中标注说明，不影响运行逻辑 */
+	UPROPERTY(EditAnywhere, Category="通用", meta=(DisplayName="备注", MultiLine=true))
+	FString Remark;
+
 protected:
 	virtual bool OnShouldKeep(const FBatchTarget& Target) const;
 

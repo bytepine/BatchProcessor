@@ -25,6 +25,7 @@ struct FPipelineEntry
 {
     UObject*                Component   = nullptr;
     FText                   DisplayName;
+    FString                 Remark;      // 组件备注（反射读取 Remark 属性）
     bool                    bHasError   = false;
     FText                   ErrorText;
     TArray<FSubGroupEntry>  SubGroups;   // 反射发现的子处理器/条件数组

@@ -25,6 +25,10 @@ public:
 	/** 编辑期配置校验（可选实现） */
 	virtual void ValidateConfig(TArray<FText>& OutErrors) const {}
 
+	/** 备注：仅用于在流水线视图中标注说明，不影响运行逻辑 */
+	UPROPERTY(EditAnywhere, Category="通用", meta=(DisplayName="备注", MultiLine=true))
+	FString Remark;
+
 protected:
 	virtual bool OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);
 	

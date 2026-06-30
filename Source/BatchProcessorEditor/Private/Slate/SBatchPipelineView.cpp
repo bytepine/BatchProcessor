@@ -128,6 +128,10 @@ void SBatchPipelineView::PopulateEntries(TArray<FEntryPtr>& Out, const TArray<UO
         Entry->bHasError = !Errors.IsEmpty();
         if (Entry->bHasError) Entry->ErrorText = Errors[0];
 
+        // 通过反射读取备注属性（各基类均有 Remark FStrProperty）
+        if (const FStrProperty* RemarkProp = FindFProperty<FStrProperty>(Comp->GetClass(), TEXT("Remark")))
+            Entry->Remark = RemarkProp->GetPropertyValue_InContainer(Comp);
+
         PopulateSubGroups(*Entry);
         Out.Add(Entry);
     }
@@ -171,7 +175,9 @@ void SBatchPipelineView::PopulateSubGroups(FPipelineEntry& Entry) const
             SubEntry->DisplayName = ItemDN.IsEmpty()
                 ? FText::FromString(Item->GetClass()->GetName())
                 : FText::FromString(ItemDN);
-                PopulateSubGroups(*SubEntry); // 递归扫描子条目自身的子组
+            if (const FStrProperty* RP = FindFProperty<FStrProperty>(Item->GetClass(), TEXT("Remark")))
+                SubEntry->Remark = RP->GetPropertyValue_InContainer(Item);
+            PopulateSubGroups(*SubEntry); // 递归扫描子条目自身的子组
             Group.Items.Add(SubEntry);
         }
         Entry.SubGroups.Add(MoveTemp(Group));
@@ -343,6 +349,16 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
                     .ColorAndOpacity(FSlateColor(bSelected ? FLinearColor::White : FSlateColor::UseForeground()))
                     .ToolTipText(bHasError ? Entry->ErrorText : FText::GetEmpty())
                 ]
+            ]
+            // 备注（有内容时显示，灰色斜体）
+            + SVerticalBox::Slot().AutoHeight()
+            [
+                SNew(STextBlock)
+                .Visibility(!Entry->Remark.IsEmpty() ? EVisibility::Visible : EVisibility::Collapsed)
+                .Text(FText::FromString(Entry->Remark))
+                .Font(FCoreStyle::GetDefaultFontStyle("Italic", 7))
+                .ColorAndOpacity(FSlateColor(FLinearColor(0.55f, 0.55f, 0.55f)))
+                .AutoWrapText(true)
             ]
             // 校验错误
             + SVerticalBox::Slot().AutoHeight()
@@ -611,9 +627,22 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
             ]
             + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(2.f, 2.f)
             [
-                SNew(STextBlock).Text(SubEntry->DisplayName)
-                .Font(bSubSelected ? FAppStyle::GetFontStyle("SmallFont") : FCoreStyle::GetDefaultFontStyle("Regular", 8))
-                .ColorAndOpacity(FSlateColor(bSubSelected ? FLinearColor::White : FSlateColor::UseSubduedForeground()))
+                SNew(SVerticalBox)
+                + SVerticalBox::Slot().AutoHeight()
+                [
+                    SNew(STextBlock).Text(SubEntry->DisplayName)
+                    .Font(bSubSelected ? FAppStyle::GetFontStyle("SmallFont") : FCoreStyle::GetDefaultFontStyle("Regular", 8))
+                    .ColorAndOpacity(FSlateColor(bSubSelected ? FLinearColor::White : FSlateColor::UseSubduedForeground()))
+                ]
+                + SVerticalBox::Slot().AutoHeight()
+                [
+                    SNew(STextBlock)
+                    .Visibility(!SubEntry->Remark.IsEmpty() ? EVisibility::Visible : EVisibility::Collapsed)
+                    .Text(FText::FromString(SubEntry->Remark))
+                    .Font(FCoreStyle::GetDefaultFontStyle("Italic", 6))
+                    .ColorAndOpacity(FSlateColor(FLinearColor(0.5f, 0.5f, 0.5f)))
+                    .AutoWrapText(true)
+                ]
             ]
             // 删除
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 4.f, 0.f)
