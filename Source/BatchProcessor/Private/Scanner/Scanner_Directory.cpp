@@ -4,6 +4,7 @@
 #include "Scanner_Directory.h"
 
 #include "BatchDefine.h"
+#include "Utils/BatchVersionCompat.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
 
@@ -39,7 +40,11 @@ void UScanner_Directory::OnScannerAssets(TSet<FAssetData>& Assets) const
 	FARFilter Filter;
 	Filter.PackagePaths.Add(*Directory.Path);
 	Filter.bRecursivePaths = bRecursivePaths;  // 是否递归搜索子文件夹
+#if BP_UE_HAS_CLASS_PATHS
 	Filter.ClassPaths.Add(AssetClass->GetClassPathName());
+#else
+	Filter.ClassNames.Add(AssetClass->GetFName());
+#endif
 	Filter.bRecursiveClasses = bRecursiveClasses;  // 是否包含子类
 
 	TArray<FAssetData> AssetArray;

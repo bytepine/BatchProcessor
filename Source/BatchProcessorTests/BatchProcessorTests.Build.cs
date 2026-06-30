@@ -16,19 +16,20 @@ public class BatchProcessorTests : ModuleRules
             "Core",
             "CoreUObject",
             "Engine",
-        });
-
-        PrivateDependencyModuleNames.AddRange(new string[]
-        {
             "BatchProcessor",
-            "UnrealEd",
         });
 
-        // 允许测试访问 BatchProcessor 的 Private 头文件（如 Filter_GeneratedClass）
-        PrivateIncludePaths.AddRange(new string[]
+        // 测试模块仅 Editor target 编译；避免 BuildPlugin Game 阶段拉入 UnrealEd
+        if (Target.bBuildEditor)
         {
-            "BatchProcessor/Private",
-        });
+            PrivateDependencyModuleNames.Add("UnrealEd");
+
+            PrivateIncludePaths.AddRange(new string[]
+            {
+                "BatchProcessor/Private",
+                "BatchProcessor/Public",
+            });
+        }
     }
 
     // ── WITH_EDITOR_ENCRYPTION 兜底（与 BatchProcessor.Build.cs 同步维护） ──────

@@ -91,13 +91,13 @@ private:
 	 * 配置来源（CDO）
 	 */
 	UPROPERTY()
-	TObjectPtr<UBatchBase> Config;
+	UBatchBase* Config;
 
 	/**
 	 * 运行上下文
 	 */
 	UPROPERTY()
-	TObjectPtr<UBatchContext> Context;
+	UBatchContext* Context;
 
 	/**
 	 * 批处理状态

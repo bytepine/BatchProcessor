@@ -4,6 +4,19 @@
 #include "BatchDefine.h"
 #include "BlueprintEditor.h"
 #include "Toolkits/AssetEditorToolkitMenuContext.h"
+#include "ToolMenus.h"
+#include "ToolMenu.h"
+#include "ToolMenuSection.h"
+#include "ToolMenuEntry.h"
+#include "Utils/BatchVersionCompat.h"
+
+#if BP_UE_HAS_APP_STYLE
+#include "Styling/AppStyle.h"
+#define BP_STYLE_SET_NAME FAppStyle::GetAppStyleSetName()
+#else
+#include "EditorStyleSet.h"
+#define BP_STYLE_SET_NAME FEditorStyle::GetStyleSetName()
+#endif
 
 DEFINE_LOG_CATEGORY(LogBatchProcessor);
 
@@ -49,7 +62,7 @@ void FBatchProcessorModule::RegisterBlueprintEditorToolbar()
 				),
 				LOCTEXT("ExecuteBatchProcessing", "执行批处理"),
 				LOCTEXT("ExecuteBatchProcessing_Tooltip", "执行批处理操作"),
-				FSlateIcon(FAppStyle::GetAppStyleSetName(), "GenericPlay")
+				FSlateIcon(BP_STYLE_SET_NAME, "GenericPlay")
 			));
 		}
 	}));
@@ -77,7 +90,7 @@ void FBatchProcessorModule::RegisterBlueprintEditorToolbar()
 				),
 				LOCTEXT("TerminationBatchProcessing", "终止批处理"),
 				LOCTEXT("TerminationBatchProcessing_Tooltip", "终止批处理操作"),
-				FSlateIcon(FAppStyle::GetAppStyleSetName(), "GenericStop")
+				FSlateIcon(BP_STYLE_SET_NAME, "GenericStop")
 			));
 		}
 	}));

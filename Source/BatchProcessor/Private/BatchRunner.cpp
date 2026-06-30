@@ -115,7 +115,8 @@ void UBatchRunner::OnProcessing()
 
 	TArray<FSoftObjectPath> PendingArray;
 
-	if (const int32 Count = Context->GetPendingArray(PendingArray, Config->BatchSize); Count > 0)
+	const int32 Count = Context->GetPendingArray(PendingArray, Config->BatchSize);
+	if (Count > 0)
 	{
 		StreamableManager.RequestAsyncLoad(PendingArray,
 			FStreamableDelegate::CreateUObject(this, &UBatchRunner::OnAssetLoaded, PendingArray));

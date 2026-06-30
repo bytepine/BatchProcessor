@@ -2,8 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
+#include "Tests/BatchTestCompat.h"
+#include "Tests/BatchTestFixtures.h"
 #include "BatchDefine.h"
-#include "Filter/Filter_GeneratedClass.h"
+#include "FilterBase.h"
+#include "UObject/UObjectIterator.h"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Filter_GeneratedClass — 未配置类时应排除所有资产
@@ -12,17 +15,30 @@
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBatchFilter_GeneratedClass_ExcludesWhenNotConfigured,
 	"BatchProcessor.Filter.GeneratedClass.ExcludesWhenNotConfigured",
-	EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+	BATCH_AUTOMATION_TEST_FLAGS)
 
 bool FBatchFilter_GeneratedClass_ExcludesWhenNotConfigured::RunTest(const FString& Parameters)
 {
-	// GeneratedClass 未设置的过滤器应排除所有资产（返回 false）
-	// 避免「忘配类 = 静默放行全部」的危险默认行为
-	UFilter_GeneratedClass* Filter = NewObject<UFilter_GeneratedClass>();
+	UClass* FilterClass = FindObject<UClass>(nullptr, TEXT("/Script/BatchProcessor.Filter_GeneratedClass"));
+	if (!FilterClass)
+	{
+		for (TObjectIterator<UClass> It; It; ++It)
+		{
+			if (It->GetName() == TEXT("Filter_GeneratedClass"))
+			{
+				FilterClass = *It;
+				break;
+			}
+		}
+	}
+	TestNotNull(TEXT("Filter_GeneratedClass 类应已注册"), FilterClass);
+
+	FStaticConstructObjectParameters FilterParams(FilterClass);
+	UFilterBase* Filter = Cast<UFilterBase>(StaticConstructObject_Internal(FilterParams));
+	TestNotNull(TEXT("应能实例化 Filter_GeneratedClass"), Filter);
 	Filter->AddToRoot();
 
-	// 用一个合法但无关的 UObject 构造 Target
-	UObject* DummyObj = NewObject<UObject>(GetTransientPackage(), NAME_None, RF_Transient);
+	UBatchTestObject* DummyObj = NewObject<UBatchTestObject>();
 	const FBatchTarget Target(DummyObj);
 
 	const bool bShouldKeep = Filter->ShouldKeep(Target);

@@ -5,6 +5,8 @@
 
 #include "BatchContext.h"
 #include "BatchDefine.h"
+#include "Utils/BatchVersionCompat.h"
+#include "Misc/MessageDialog.h"
 
 void UProcessor_Usage::OnFinish(UBatchContext* Context) const
 {
@@ -26,5 +28,9 @@ void UProcessor_Usage::OnFinish(UBatchContext* Context) const
 	{
 		DialogText = FText::FromString(Lines);
 	}
+#if BP_UE_HAS_MESSAGE_DIALOG_TITLE_BY_VALUE
 	FMessageDialog::Open(EAppMsgType::Ok, DialogText, DialogTitle);
+#else
+	FMessageDialog::Open(EAppMsgType::Ok, DialogText, &DialogTitle);
+#endif
 }

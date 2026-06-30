@@ -85,7 +85,7 @@ private:
 	 * 当前活动的运行实例（运行态全部承载于此）
 	 */
 	UPROPERTY()
-	TObjectPtr<UBatchRunner> ActiveRunner;
+	UBatchRunner* ActiveRunner;
 
 	friend class UBatchRunner;
 };

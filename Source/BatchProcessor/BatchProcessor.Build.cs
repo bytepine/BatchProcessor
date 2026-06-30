@@ -21,14 +21,20 @@ public class BatchProcessor : ModuleRules
         {
             "CoreUObject",
             "Engine",
-            "Slate",
-            "SlateCore",
-            "ToolMenus",
-            "UnrealEd",
         });
 
-        // EditorStyle 模块在 UE4~5.7 均有效；若将来引擎移除时再通过 IsUE5xOrNewer 切换
-        PrivateDependencyModuleNames.Add("EditorStyle");
+        // Editor-only 依赖：Game target 构建时不得引用 UnrealEd（BuildPlugin 会同时编两套 target）
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.AddRange(new string[]
+            {
+                "Slate",
+                "SlateCore",
+                "ToolMenus",
+                "UnrealEd",
+                "EditorStyle",
+            });
+        }
     }
 
     // ── WITH_EDITOR_ENCRYPTION 兜底（与 NexusLink.Build.cs 同步维护） ──────────

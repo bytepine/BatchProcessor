@@ -4,6 +4,7 @@
 #include "BatchAssetSaver.h"
 
 #include "BatchDefine.h"
+#include "Utils/BatchVersionCompat.h"
 #include "UObject/SavePackage.h"
 
 EBatchSaveResult FDefaultBatchAssetSaver::SaveAsset(UObject* Asset)
@@ -25,7 +26,11 @@ EBatchSaveResult FDefaultBatchAssetSaver::SaveAsset(UObject* Asset)
 		Package->GetName(),
 		FPackageName::GetAssetPackageExtension());
 
+#if BP_UE_HAS_SAVE_PACKAGE_ARGS
 	if (!UPackage::SavePackage(Package, nullptr, *Filename, FSavePackageArgs()))
+#else
+	if (!UPackage::SavePackage(Package, Asset, RF_Standalone, *Filename))
+#endif
 	{
 		UE_LOG(LogBatchProcessor, Error, TEXT("SaveAsset: Save File Failed [%s]"), *Filename);
 		return EBatchSaveResult::Failed;

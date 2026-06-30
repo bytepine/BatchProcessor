@@ -24,6 +24,12 @@
 
 // ── 通用 Editor API 变更点 ────────────────────────────────────────────────────
 
+// UE5.0：TObjectPtr<T> 替代裸指针作为 UPROPERTY 成员（UE4 使用 T*）
+#define BP_UE_HAS_OBJECT_PTR          BP_UE_AT_LEAST(5, 0)
+
+// UE5.3：FMessageDialog::Open 的 Title 参数由 const FText* 改为 const FText&（按值）
+#define BP_UE_HAS_MESSAGE_DIALOG_TITLE_BY_VALUE  BP_UE_AT_LEAST(5, 3)
+
 // UE5.0：FEditorStyle::Get() → FAppStyle::Get()（头文件 Styling/AppStyle.h）
 #define BP_UE_HAS_APP_STYLE           BP_UE_AT_LEAST(5, 0)
 

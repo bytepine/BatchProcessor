@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Misc/AutomationTest.h"
+#include "Tests/BatchTestCompat.h"
 #include "Tests/BatchTestFixtures.h"
 #include "BatchFunctionLibrary.h"
 #include "BatchDefine.h"
@@ -13,7 +14,7 @@
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBatchFindProperty_ExactMatch,
 	"BatchProcessor.FunctionLibrary.FindProperty.ExactMatch",
-	EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+	BATCH_AUTOMATION_TEST_FLAGS)
 
 bool FBatchFindProperty_ExactMatch::RunTest(const FString& Parameters)
 {
@@ -45,7 +46,7 @@ bool FBatchFindProperty_ExactMatch::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBatchFindProperty_NestedPath,
 	"BatchProcessor.FunctionLibrary.FindProperty.NestedPath",
-	EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+	BATCH_AUTOMATION_TEST_FLAGS)
 
 bool FBatchFindProperty_NestedPath::RunTest(const FString& Parameters)
 {
@@ -73,7 +74,7 @@ bool FBatchFindProperty_NestedPath::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBatchSetProperty_Bool,
 	"BatchProcessor.FunctionLibrary.SetProperty.Bool",
-	EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+	BATCH_AUTOMATION_TEST_FLAGS)
 
 bool FBatchSetProperty_Bool::RunTest(const FString& Parameters)
 {
@@ -115,7 +116,7 @@ bool FBatchSetProperty_Bool::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBatchSetProperty_Int,
 	"BatchProcessor.FunctionLibrary.SetProperty.Int",
-	EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+	BATCH_AUTOMATION_TEST_FLAGS)
 
 bool FBatchSetProperty_Int::RunTest(const FString& Parameters)
 {
@@ -151,7 +152,7 @@ bool FBatchSetProperty_Int::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FBatchSetProperty_String,
 	"BatchProcessor.FunctionLibrary.SetProperty.String",
-	EAutomationTestFlags_ApplicationContextMask | EAutomationTestFlags::ProductFilter)
+	BATCH_AUTOMATION_TEST_FLAGS)
 
 bool FBatchSetProperty_String::RunTest(const FString& Parameters)
 {

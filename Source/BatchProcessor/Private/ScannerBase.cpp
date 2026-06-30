@@ -3,6 +3,8 @@
 
 #include "ScannerBase.h"
 
+#include "Internationalization/Regex.h"
+
 UScannerBase::UScannerBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 	, NameType(EFilter_NameType::AssetName)
@@ -50,7 +52,8 @@ void UScannerBase::OnFilter(TSet<FAssetData>& Assets) const
 		}
 
 		// 如果不匹配正则表达式，则标记为需要移除
-		if (FRegexMatcher Matcher(Pattern, FilterName); !Matcher.FindNext())
+		FRegexMatcher Matcher(Pattern, FilterName);
+		if (!Matcher.FindNext())
 		{
 			AssetsToRemove.Add(Asset);
 		}

@@ -28,6 +28,13 @@ bool UBatchFunctionLibrary::DoProcessors(const TArray<SPBatchProcessorType*>& Pr
 	return bResult;
 }
 
+// 显式实例化：模板定义在 .cpp 中，其他翻译单元引用时需导出符号
+template bool UBatchFunctionLibrary::DoProcessors<UProcessorBase>(
+	const TArray<UProcessorBase*>& Processors,
+	const FBatchTarget& Target,
+	UBatchContext* Context,
+	const FBatchVariable& Variable);
+
 bool UBatchFunctionLibrary::FindProperty(const FString& PropertyName, const FBatchVariable& Variable, FBatchProperty& FindProperty)
 {
 	if (!Variable.Address|| !Variable.Struct)
@@ -39,7 +46,7 @@ bool UBatchFunctionLibrary::FindProperty(const FString& PropertyName, const FBat
 	TArray<FString> PropertyPath;
 	PropertyName.ParseIntoArray(PropertyPath, TEXT("."));
 
-	if (PropertyPath.IsEmpty())
+	if (PropertyPath.Num() == 0)
 	{
 		return false;
 	}
@@ -350,7 +357,7 @@ bool UBatchFunctionLibrary::CheckConditions(const TArray<UConditionBase*>& Condi
 {
 	bool bPass = true;
 
-	if (!Conditions.IsEmpty())
+	if (Conditions.Num() > 0)
 	{
 		if (bMustPassAllCondition)
 		{

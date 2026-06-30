@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
+#include "UObject/Interface.h"
 #include "BatchDefine.generated.h"
 
 class UBlueprint;
@@ -186,7 +187,7 @@ struct BATCHPROCESSOR_API FBatchTarget
 	FString GetPathName() const;
 
 	UPROPERTY(BlueprintReadOnly, Category = "批处理")
-	TObjectPtr<UObject> Asset;
+	UObject* Asset;
 };
 
 /**
