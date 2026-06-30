@@ -61,15 +61,16 @@ void FBatchAssetEditorToolkit::InitBatchAssetEditor(EToolkitMode::Type Mode,
     DetailsView = PEM.CreateDetailView(DetailsArgs);
     // 默认不选中任何对象，等待用户点击流水线节点后再填充
 
-    // 过滤掉 Instanced 子处理器/条件数组——这些由流水线视图内联管理
+    // 过滤掉子处理器/条件数组——这些由流水线视图内联管理
+    // 注意：Instanced 关键字设置的是 CPF_InstancedReference 而非 CPF_PersistentInstance，
+    // 因此不检查标志位，直接按元素类型判断。
     DetailsView->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda(
         [](const FPropertyAndParent& PropertyAndParent) -> bool
         {
             const FArrayProperty* ArrayProp = CastField<FArrayProperty>(&PropertyAndParent.Property);
             if (!ArrayProp) return true;
-            if (!ArrayProp->HasAnyPropertyFlags(CPF_PersistentInstance)) return true;
             const FObjectProperty* InnerProp = CastField<FObjectProperty>(ArrayProp->Inner);
-            if (!InnerProp) return true;
+            if (!InnerProp || !InnerProp->PropertyClass) return true;
             const UClass* ElemClass = InnerProp->PropertyClass;
             if (ElemClass->IsChildOf(UProcessorBase::StaticClass())) return false;
             if (ElemClass->IsChildOf(UConditionBase::StaticClass()))  return false;
