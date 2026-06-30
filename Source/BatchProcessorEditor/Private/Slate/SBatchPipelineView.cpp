@@ -142,8 +142,6 @@ void SBatchPipelineView::PopulateSubGroups(FPipelineEntry& Entry) const
     for (TFieldIterator<FArrayProperty> It(Comp->GetClass()); It; ++It)
     {
         FArrayProperty* ArrayProp = *It;
-        if (!ArrayProp->HasAnyPropertyFlags(CPF_PersistentInstance)) continue;
-
         FObjectProperty* InnerProp = CastField<FObjectProperty>(ArrayProp->Inner);
         if (!InnerProp) continue;
 
