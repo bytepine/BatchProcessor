@@ -7,14 +7,27 @@
 
 class UBatchAsset;
 class UObject;
+class FArrayProperty;
+
+/**
+ * 子组件分组（对应 UObject 上一个 Instanced TArray<UProcessorBase*> 或 TArray<UConditionBase*> 属性）
+ */
+struct FSubGroupEntry
+{
+    FArrayProperty*                          ArrayProp   = nullptr;
+    FText                                    DisplayName;
+    UClass*                                  ElementBase = nullptr; // UProcessorBase 或 UConditionBase
+    TArray<TSharedPtr<struct FPipelineEntry>> Items;
+};
 
 /** 流水线中单个组件的数据项 */
 struct FPipelineEntry
 {
-    UObject* Component   = nullptr;
-    FText    DisplayName;
-    bool     bHasError   = false;
-    FText    ErrorText;
+    UObject*                Component   = nullptr;
+    FText                   DisplayName;
+    bool                    bHasError   = false;
+    FText                   ErrorText;
+    TArray<FSubGroupEntry>  SubGroups;   // 反射发现的子处理器/条件数组
 
     bool operator==(const FPipelineEntry& Other) const { return Component == Other.Component; }
 };
@@ -27,10 +40,10 @@ DECLARE_DELEGATE_OneParam(FOnPipelineSelectionChanged, UObject* /*SelectedCompon
  * 横向三泳道：[SCANNERS] ──▶ [FILTERS] ──▶ [PROCESSORS]
  * 每个泳道内组件以卡片形式纵向排列，支持：
  *   - 下拉菜单添加组件（按基类枚举所有已注册具体子类）
- *   - 悬停显示删除按钮
- *   - 点击卡片选中并驱动右侧 Details 面板
+ *   - 点击卡片选中并驱动右侧 Details 面板（选中态高亮）
  *   - ⚠ 图标标注 ValidateConfig 校验错误
- * 两侧泳道间绘制 ──▶ 箭头表达数据流方向。
+ *   - 含子处理器/条件数组的处理器卡片可展开内联子组
+ * 泳道间绘制 ──▶ 箭头表达数据流方向。
  */
 class BATCHPROCESSOREDITOR_API SBatchPipelineView : public SCompoundWidget
 {
@@ -53,14 +66,12 @@ private:
     TArray<FEntryPtr> FilterEntries;
     TArray<FEntryPtr> ProcessorEntries;
 
-    // 三个泳道 slot holders（SVerticalBox 中的卡片区域）
     TSharedPtr<SVerticalBox> ScannerCardsBox;
     TSharedPtr<SVerticalBox> FilterCardsBox;
     TSharedPtr<SVerticalBox> ProcessorCardsBox;
 
     // ── 泳道构建 ─────────────────────────────────────────────────────────────
 
-    /** 构建一个完整泳道（标题头 + 卡片区 + 添加按钮） */
     TSharedRef<SWidget> BuildLane(const FText& Title,
                                   const FLinearColor& HeaderColor,
                                   TArray<FEntryPtr>& Entries,
@@ -69,31 +80,41 @@ private:
                                   TFunction<void(UClass*)> AddFn,
                                   TFunction<void(int32)> RemoveFn);
 
-    /** 泳道间的 ──▶ 箭头连接符 */
     TSharedRef<SWidget> BuildArrow() const;
-
-    /** 添加组件下拉菜单按钮 */
     TSharedRef<SWidget> BuildAddMenu(UClass* BaseClass, TFunction<void(UClass*)> AddFn) const;
 
     // ── 卡片渲染 ─────────────────────────────────────────────────────────────
 
-    /** 重建某个泳道内的所有卡片 Widget */
     void RebuildCards(SVerticalBox& CardsBox,
                       const TArray<FEntryPtr>& Entries,
                       const FLinearColor& AccentColor,
                       TFunction<void(int32)> RemoveFn);
 
-    /** 构建单张组件卡片 */
     TSharedRef<SWidget> BuildCard(FEntryPtr Entry,
                                   int32 Index,
                                   const FLinearColor& AccentColor,
                                   TFunction<void(int32)> RemoveFn);
 
+    /** 构建卡片内联子组区域（子处理器/条件列表） */
+    TSharedRef<SWidget> BuildSubGroups(FEntryPtr Entry);
+
+    /** 构建单个子组（标题 + 条目列表 + 添加按钮） */
+    TSharedRef<SWidget> BuildSubGroup(FEntryPtr ParentEntry, FSubGroupEntry& Group);
+
+    /** 构建子组中的一行（子组件名 + 删除） */
+    TSharedRef<SWidget> BuildSubItem(FEntryPtr ParentEntry,
+                                     FSubGroupEntry& Group,
+                                     FEntryPtr SubEntry,
+                                     int32 SubIndex);
+
     // ── 数据填充 ─────────────────────────────────────────────────────────────
 
     void PopulateEntries(TArray<FEntryPtr>& Out, const TArray<UObject*>& Components) const;
 
-    // ── 添加 / 删除 ──────────────────────────────────────────────────────────
+    /** 反射扫描 Entry.Component 上的 Instanced 子处理器/条件数组，填充 SubGroups */
+    void PopulateSubGroups(FPipelineEntry& Entry) const;
+
+    // ── 添加 / 删除（顶层） ───────────────────────────────────────────────────
 
     void OnScannerAdd(UClass* Class);
     void OnFilterAdd(UClass* Class);
@@ -103,22 +124,25 @@ private:
     void OnFilterRemove(int32 Index);
     void OnProcessorRemove(int32 Index);
 
+    // ── 添加 / 删除（子组件） ─────────────────────────────────────────────────
+
+    void OnSubComponentAdd(UObject* Parent, FArrayProperty* ArrayProp, UClass* Class);
+    void OnSubComponentRemove(UObject* Parent, FArrayProperty* ArrayProp, int32 Index);
+
     // ── 选中 ─────────────────────────────────────────────────────────────────
 
-    /** 选中某个节点（更新高亮并通知外部）；传 nullptr 清除选中 */
     void SelectComponent(UObject* Component);
 
     /**
-     * 当前选中的组件对象指针。
-     * 使用 UObject 弱指针而非 FPipelineEntry 弱指针，
-     * 这样 Refresh() 重建 Entry 数组后选中状态仍然有效。
+     * 展开/折叠状态：使用 UObject* 作 key，默认展开。
+     * 用 TSet 记录"已折叠"的组件，Refresh 后仍有效。
      */
-    TWeakObjectPtr<UObject>         SelectedComponent;
+    TSet<UObject*>              CollapsedComponents;
 
-    TWeakObjectPtr<UBatchAsset>     AssetPtr;
-    FOnPipelineSelectionChanged     OnSelectionChanged;
+    TWeakObjectPtr<UObject>     SelectedComponent;
+    TWeakObjectPtr<UBatchAsset> AssetPtr;
+    FOnPipelineSelectionChanged OnSelectionChanged;
 
-    // 每种类型的颜色
     static const FLinearColor ScannerColor;
     static const FLinearColor FilterColor;
     static const FLinearColor ProcessorColor;

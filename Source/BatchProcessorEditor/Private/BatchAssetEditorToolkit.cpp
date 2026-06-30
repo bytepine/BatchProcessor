@@ -3,6 +3,8 @@
 #include "BatchAssetEditorToolkit.h"
 
 #include "BatchAsset.h"
+#include "ProcessorBase.h"
+#include "ConditionBase.h"
 #include "EditorBatchProgressReporter.h"
 #include "Slate/SBatchPipelineView.h"
 #include "Slate/SBatchConsole.h"
@@ -58,6 +60,21 @@ void FBatchAssetEditorToolkit::InitBatchAssetEditor(EToolkitMode::Type Mode,
     DetailsArgs.bAllowSearch         = true;
     DetailsView = PEM.CreateDetailView(DetailsArgs);
     // 默认不选中任何对象，等待用户点击流水线节点后再填充
+
+    // 过滤掉 Instanced 子处理器/条件数组——这些由流水线视图内联管理
+    DetailsView->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda(
+        [](const FPropertyAndParent& PropertyAndParent) -> bool
+        {
+            const FArrayProperty* ArrayProp = CastField<FArrayProperty>(&PropertyAndParent.Property);
+            if (!ArrayProp) return true;
+            if (!ArrayProp->HasAnyPropertyFlags(CPF_PersistentInstance)) return true;
+            const FObjectProperty* InnerProp = CastField<FObjectProperty>(ArrayProp->Inner);
+            if (!InnerProp) return true;
+            const UClass* ElemClass = InnerProp->PropertyClass;
+            if (ElemClass->IsChildOf(UProcessorBase::StaticClass())) return false;
+            if (ElemClass->IsChildOf(UConditionBase::StaticClass()))  return false;
+            return true;
+        }));
 
     // ── 创建各 Slate 组件（延迟到 SpawnTab 中构建完整布局，这里只预分配）─────
     // 实际在 SpawnTab_* 中 SNew
