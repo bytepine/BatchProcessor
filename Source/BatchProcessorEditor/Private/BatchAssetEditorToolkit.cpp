@@ -57,7 +57,7 @@ void FBatchAssetEditorToolkit::InitBatchAssetEditor(EToolkitMode::Type Mode,
     DetailsArgs.NotifyHook           = this;
     DetailsArgs.bAllowSearch         = true;
     DetailsView = PEM.CreateDetailView(DetailsArgs);
-    DetailsView->SetObject(InAsset);
+    // 默认不选中任何对象，等待用户点击流水线节点后再填充
 
     // ── 创建各 Slate 组件（延迟到 SpawnTab 中构建完整布局，这里只预分配）─────
     // 实际在 SpawnTab_* 中 SNew
@@ -367,9 +367,9 @@ void FBatchAssetEditorToolkit::RefreshDetails(UObject* SelectedComponent)
         {
             DetailsView->SetObject(SelectedComponent);
         }
-        else if (UBatchAsset* Asset = BatchAsset.Get())
+        else
         {
-            DetailsView->SetObject(Asset);
+            DetailsView->SetObject(nullptr);
         }
     }
 }
