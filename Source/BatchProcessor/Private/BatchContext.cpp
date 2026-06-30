@@ -4,6 +4,7 @@
 #include "BatchContext.h"
 
 #include "BatchDefine.h"
+#include "Utils/BatchVersionCompat.h"
 
 
 UClass* IBatchScratchPadInterface::GetScratchPadClass() const
@@ -34,7 +35,12 @@ int32 UBatchContext::GetPendingArray(TArray<FSoftObjectPath>& PendingArray, int3
 	const int32 LoadCount = FMath::Min(LoadArray.Num(), FMath::Max(MaxCount, 1));
 	for (int i = 0; i < LoadCount; ++i)
 	{
-		PendingArray.Add(LoadArray.Pop().ToSoftObjectPath());
+		// 逐个 Pop 不触发收缩，避免反复重分配（默认 bAllowShrinking 会逐次缩容）
+#if BP_UE_HAS_ALLOW_SHRINKING_ENUM
+		PendingArray.Add(LoadArray.Pop(EAllowShrinking::No).ToSoftObjectPath());
+#else
+		PendingArray.Add(LoadArray.Pop(false).ToSoftObjectPath());
+#endif
 	}
 	return LoadCount;
 }

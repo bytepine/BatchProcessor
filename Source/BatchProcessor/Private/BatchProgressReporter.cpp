@@ -8,6 +8,8 @@
 
 void FSlateBatchProgressReporter::OnBegin()
 {
+	LastProgressTime = 0.0;
+
 	FNotificationInfo Info(FText::FromString(TEXT("批处理开始")));
 	Info.bFireAndForget = false;
 	Info.bUseThrobber = true;
@@ -18,6 +20,14 @@ void FSlateBatchProgressReporter::OnBegin()
 
 void FSlateBatchProgressReporter::OnProgress(const FString& Message)
 {
+	// ~10Hz 节流：大批量时限制 Slate 通知刷新频率，减少不必要的渲染压力
+	const double Now = FPlatformTime::Seconds();
+	if (Now - LastProgressTime < 0.1)
+	{
+		return;
+	}
+	LastProgressTime = Now;
+
 	if (ProgressNotification.IsValid())
 	{
 		ProgressNotification->SetText(FText::FromString(Message));

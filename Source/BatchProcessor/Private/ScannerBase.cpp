@@ -25,22 +25,25 @@ void UScannerBase::OnScannerAssets(TSet<FAssetData>& Assets) const
 
 void UScannerBase::OnFilter(TSet<FAssetData>& Assets) const
 {
-	// 如果正则表达式为空，则不进行过滤
-	if (RegularExpressions.IsEmpty())
+	FilterAssetsByName(Assets, NameType, RegularExpressions);
+}
+
+void UScannerBase::FilterAssetsByName(TSet<FAssetData>& Assets, EFilter_NameType InNameType, const FString& Regex)
+{
+	// 正则表达式为空时不过滤
+	if (Regex.IsEmpty())
 	{
 		return;
 	}
 
-	// 编译正则表达式
-	const FRegexPattern Pattern(RegularExpressions);
+	const FRegexPattern Pattern(Regex);
 
-	// 遍历资产集合并进行过滤
 	TArray<FAssetData> AssetsToRemove;
 	for (const FAssetData& Asset : Assets)
 	{
-		// 获取当前过滤名
 		FString FilterName;
-		switch (NameType) {
+		switch (InNameType)
+		{
 		case EFilter_NameType::AssetName:
 			FilterName = Asset.AssetName.ToString();
 			break;
@@ -51,15 +54,13 @@ void UScannerBase::OnFilter(TSet<FAssetData>& Assets) const
 			continue;
 		}
 
-		// 如果不匹配正则表达式，则标记为需要移除
 		FRegexMatcher Matcher(Pattern, FilterName);
 		if (!Matcher.FindNext())
 		{
 			AssetsToRemove.Add(Asset);
 		}
 	}
-	
-	// 移除不匹配的资产
+
 	for (const FAssetData& Asset : AssetsToRemove)
 	{
 		Assets.Remove(Asset);

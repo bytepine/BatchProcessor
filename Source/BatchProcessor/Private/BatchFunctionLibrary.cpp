@@ -22,6 +22,8 @@ bool UBatchFunctionLibrary::DoProcessors(const TArray<SPBatchProcessorType*>& Pr
 
 	for (const UProcessorBase* Processor : Processors)
 	{
+		// Instanced 数组可能含 null（编辑器删除内联实例 / 类丢失），跳过以防崩溃
+		if (!IsValid(Processor)) continue;
 		bResult |= Processor->Processing(Target, Context, Variable);
 	}
 
@@ -337,7 +339,8 @@ EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& Proper
 	{
 		void* PropertyValuePtr = SoftObjectProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
 		const FSoftObjectPtr& CurrentValue = SoftObjectProperty->GetPropertyValue(PropertyValuePtr);
-		if (CurrentValue.GetLongPackageName() == Value.GetLongPackageName())
+		// 用完整对象路径比较：仅比包名会把同包内不同资产误判为 Same 而漏写
+		if (CurrentValue.ToSoftObjectPath() == Value.ToSoftObjectPath())
 		{
 			return EBatchSetPropertyResult::Same;
 		}
@@ -363,6 +366,7 @@ bool UBatchFunctionLibrary::CheckConditions(const TArray<UConditionBase*>& Condi
 		{
 			for (UConditionBase* Condition : Conditions)
 			{
+				if (!IsValid(Condition)) continue;
 				if (!Condition->CheckCondition(Target, Context, Variable))
 				{
 					bPass = false;
@@ -375,6 +379,7 @@ bool UBatchFunctionLibrary::CheckConditions(const TArray<UConditionBase*>& Condi
 			bPass = false;
 			for (UConditionBase* Condition : Conditions)
 			{
+				if (!IsValid(Condition)) continue;
 				if (Condition->CheckCondition(Target, Context, Variable))
 				{
 					bPass = true;
@@ -391,6 +396,7 @@ bool UBatchFunctionLibrary::ShouldKeepAll(const TArray<UFilterBase*>& Filters, c
 {
 	for (const auto Filter : Filters)
 	{
+		if (!IsValid(Filter)) continue;
 		if (!Filter->ShouldKeep(Target))
 		{
 			return false;

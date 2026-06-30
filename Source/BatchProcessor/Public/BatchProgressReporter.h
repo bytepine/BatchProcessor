@@ -29,6 +29,10 @@ public:
 
 /**
  * Slate 通知实现（编辑器交互场景）
+ *
+ * OnProgress 内部以 ~10Hz 节流：大批量资产时每秒最多更新 10 次 UI，
+ * 避免每个资产都刷新通知条目造成不必要的渲染压力。
+ * IBatchProgressReporter 接口语义不变，自定义 reporter 仍可全量接收每条回调。
  */
 class BATCHPROCESSOR_API FSlateBatchProgressReporter : public IBatchProgressReporter
 {
@@ -39,6 +43,9 @@ public:
 
 private:
 	TSharedPtr<SNotificationItem> ProgressNotification;
+
+	/** 上次实际刷新 UI 的时间戳（秒），用于节流 */
+	double LastProgressTime = 0.0;
 };
 
 /**

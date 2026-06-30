@@ -88,6 +88,11 @@ private:
 	void OnFinish();
 
 	/**
+	 * 依次调用所有处理器的 Finish（完成与中途停止都需收尾，保证生命周期对称）
+	 */
+	void FinalizeProcessors();
+
+	/**
 	 * 配置来源（CDO）
 	 */
 	UPROPERTY()
@@ -118,4 +123,19 @@ private:
 	 * 资产保存实现
 	 */
 	TSharedPtr<IBatchAssetSaver> AssetSaver;
+
+	/**
+	 * 本轮是否有蓝图用 BatchCompile 编译过，收尾时统一执行一次 GC
+	 */
+	bool bCompiledAnyBlueprint = false;
+
+	/**
+	 * RequestAsyncLoad 调用尚未返回时为 true，用于检测同步完成（蹦床守卫）
+	 */
+	bool bAwaitingLoad = false;
+
+	/**
+	 * 在 bAwaitingLoad 期间 OnAssetLoaded 被同步触发时置 true，OnProcessing 循环据此续接
+	 */
+	bool bBatchCompletedSync = false;
 };

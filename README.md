@@ -149,8 +149,18 @@ Processors:
 
 ## 扩展开发指南
 
+### 过滤时机：pre-load vs post-load
+
+| 阶段 | 写在哪里 | 可用数据 | 典型用途 |
+|---|---|---|---|
+| **pre-load**（加载前） | `UScannerBase::OnScannerAssets` 或调用 `FilterAssetsByName` | `FAssetData`（路径、类名、标签，无资产内容） | 按目录、资产类、名称正则筛选，尽早剪枝减少加载量 |
+| **post-load**（加载后） | `UFilterBase::OnShouldKeep` | 已加载的 `FBatchTarget`（可读取 CDO 属性、材质参数等） | 按资产内容条件精细过滤，如属性值、引用关系 |
+
+> **原则**：能在 pre-load 阶段判断的条件尽量写在 Scanner（`FilterAssetsByName` 工具方法可复用），减少不必要的异步加载。运行时内容条件才放 Filter。
+
 1. **自定义扫描器**
    - 继承 `UScannerBase`，重写 `OnScannerAssets` 收集资产，可复用 `OnFilter` 的正则过滤。
+   - 若需在自定义 Scanner 内做额外名称过滤，可直接调用静态方法 `UScannerBase::FilterAssetsByName(Assets, NameType, Regex)`。
 2. **自定义过滤器**
    - 继承 `UFilterBase`，重写 `OnShouldKeep` 返回是否**保留**该资产。基类已处理 `bInvert` 翻转，子类只需返回「是否匹配保留条件」。
    - 签名：`virtual bool OnShouldKeep(const FBatchTarget& Target) const;`

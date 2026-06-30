@@ -69,6 +69,8 @@ void UBatchRunner::OnStart()
 	TSet<FAssetData> Assets;
 	for (const UScannerBase* Scanner : Config->Scanners)
 	{
+		// Instanced 数组可能含 null（编辑器删除内联实例 / 类丢失），跳过以防崩溃
+		if (!IsValid(Scanner)) continue;
 		Scanner->ScannerAssets(Assets);
 	}
 
@@ -77,6 +79,7 @@ void UBatchRunner::OnStart()
 	// 批处理开始
 	for (const UProcessorBase* Processor : Config->Processors)
 	{
+		if (!IsValid(Processor)) continue;
 		Processor->Start(Context);
 	}
 
@@ -95,6 +98,9 @@ void UBatchRunner::OnStop()
 {
 	Status = EBatchStatus::Idle;
 
+	// 中途停止同样要给处理器收尾，避免在 Start 中申请的资源 / ScratchPad 泄漏
+	FinalizeProcessors();
+
 	ProgressReporter->OnFinished(false, TEXT("批处理停止"));
 
 	if (Config)
@@ -105,25 +111,39 @@ void UBatchRunner::OnStop()
 
 void UBatchRunner::OnProcessing()
 {
-	if (Status == EBatchStatus::Stop)
+	// 蹦床循环：正常路径下 RequestAsyncLoad 回调来自后续 tick（自然展栈，循环只跑一次就 return）。
+	// 当资产已在内存中而回调被同步触发时，bBatchCompletedSync 被 OnAssetLoaded 置 true，
+	// 循环在原调用栈内续接下一批，消除潜在递归。
+	while (true)
 	{
-		OnStop();
-		return;
-	}
+		if (Status == EBatchStatus::Stop)
+		{
+			OnStop();
+			return;
+		}
 
-	Status = EBatchStatus::Processing;
+		Status = EBatchStatus::Processing;
 
-	TArray<FSoftObjectPath> PendingArray;
+		TArray<FSoftObjectPath> PendingArray;
+		const int32 Count = Context->GetPendingArray(PendingArray, Config->BatchSize);
+		if (Count <= 0)
+		{
+			OnFinish();
+			return;
+		}
 
-	const int32 Count = Context->GetPendingArray(PendingArray, Config->BatchSize);
-	if (Count > 0)
-	{
+		bBatchCompletedSync = false;
+		bAwaitingLoad = true;
 		StreamableManager.RequestAsyncLoad(PendingArray,
 			FStreamableDelegate::CreateUObject(this, &UBatchRunner::OnAssetLoaded, PendingArray));
-	}
-	else
-	{
-		OnFinish();
+		bAwaitingLoad = false;
+
+		if (!bBatchCompletedSync)
+		{
+			// 正常异步路径：等后续 tick 回调续接，本次返回
+			return;
+		}
+		// 同步完成路径：不递归，继续循环发起下一批
 	}
 }
 
@@ -131,6 +151,12 @@ void UBatchRunner::OnAssetLoaded(TArray<FSoftObjectPath> PendingArray)
 {
 	for (auto& TargetPath : PendingArray)
 	{
+		// 批内响应停止请求：不再处理剩余资产，交由 OnProcessing 走 OnStop 收尾
+		if (Status == EBatchStatus::Stop)
+		{
+			break;
+		}
+
 		Context->AddCount();
 
 		UObject* LoadedObject = TargetPath.ResolveObject();
@@ -163,11 +189,15 @@ void UBatchRunner::OnAssetLoaded(TArray<FSoftObjectPath> PendingArray)
 			}
 			else if (ProcessAssets(Target))
 			{
-				// 蓝图资产：先传播默认值变更再落盘，避免子蓝图 / 已有实例在下次编译时回退
+				// 蓝图资产：先传播默认值变更再落盘，避免子蓝图 / 已有实例在下次编译时回退。
+				// SkipGarbageCollection + BatchCompile：跳过逐次 GC、标记为批量模式；
+				// 所有蓝图编译完成后在 FinalizeProcessors 统一执行一次 CollectGarbage。
 				if (UBlueprint* BP = Target.GetBlueprint())
 				{
 					FBlueprintEditorUtils::MarkBlueprintAsModified(BP);
-					FKismetEditorUtilities::CompileBlueprint(BP);
+					FKismetEditorUtilities::CompileBlueprint(BP,
+						EBlueprintCompileOptions::SkipGarbageCollection | EBlueprintCompileOptions::BatchCompile);
+					bCompiledAnyBlueprint = true;
 				}
 
 				const EBatchSaveResult SaveResult = AssetSaver->SaveAsset(Target.GetSaveObject());
@@ -187,6 +217,14 @@ void UBatchRunner::OnAssetLoaded(TArray<FSoftObjectPath> PendingArray)
 		StreamableManager.Unload(TargetPath);
 	}
 
+	if (bAwaitingLoad)
+	{
+		// 同步完成路径：RequestAsyncLoad 尚未返回，通知 OnProcessing 循环在原栈内续接
+		bBatchCompletedSync = true;
+		return;
+	}
+
+	// 正常异步路径：OnProcessing 已经返回，在此续接下一批或收尾
 	if (Context->IsLoadFinish())
 	{
 		OnFinish();
@@ -254,13 +292,29 @@ void UBatchRunner::OnFinish()
 	ProgressReporter->OnFinished(true, FString::Printf(TEXT("批处理完成: %s"), *Result.GetSummary(Config->bDryRun)));
 
 	// 批处理完成
-	for (const UProcessorBase* Processor : Config->Processors)
-	{
-		Processor->Finish(Context);
-	}
+	FinalizeProcessors();
 
 	if (Config)
 	{
 		Config->OnRunnerFinished(this);
+	}
+}
+
+void UBatchRunner::FinalizeProcessors()
+{
+	if (!Config || !Context) return;
+
+	for (const UProcessorBase* Processor : Config->Processors)
+	{
+		// Instanced 数组可能含 null（编辑器删除内联实例 / 类丢失），跳过以防崩溃
+		if (!IsValid(Processor)) continue;
+		Processor->Finish(Context);
+	}
+
+	// 本轮有蓝图以 BatchCompile 模式编译（跳过了逐次 GC），统一在此执行一次 GC
+	if (bCompiledAnyBlueprint)
+	{
+		CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
+		bCompiledAnyBlueprint = false;
 	}
 }
