@@ -238,6 +238,6 @@ struct BATCHPROCESSOR_API FBatchResult
 	/** 记录失败 */
 	void AddFailed() { ++FailedCount; }
 
-	/** 生成摘要文本 */
-	FString GetSummary() const;
+	/** 生成摘要文本；DryRun 模式下"修改"改为"会修改"以区分实际落盘 */
+	FString GetSummary(bool bDryRun = false) const;
 };

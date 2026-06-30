@@ -1,11 +1,11 @@
-﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
+// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 
-#include "ProcessorProperty_Float.h"
+#include "ProcessorProperty_String.h"
 
 #include "BatchFunctionLibrary.h"
 
-bool UProcessorProperty_Float::OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const
+bool UProcessorProperty_String::OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const
 {
 	bool bResult = Super::OnProcessing(Target, Context, Variable);
 	

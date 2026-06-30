@@ -19,6 +19,11 @@
 			"Name": "BatchProcessor",
 			"Type": "Editor",
 			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "BatchProcessorTests",
+			"Type": "DeveloperTool",
+			"LoadingPhase": "Default"
 		}
 	]
 }

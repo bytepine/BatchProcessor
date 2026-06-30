@@ -1,39 +1,37 @@
-﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
+// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
-public class BatchProcessor : ModuleRules
+public class BatchProcessorTests : ModuleRules
 {
-    public BatchProcessor(ReadOnlyTargetRules Target) : base(Target)
+    public BatchProcessorTests(ReadOnlyTargetRules Target) : base(Target)
     {
-        OptimizeCode = CodeOptimization.InShippingBuildsOnly;
-        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        // 定制引擎（如 LetsGo）WITH_EDITOR_ENCRYPTION 兜底
+        // 定制引擎（如 LetsGo）WITH_EDITOR_ENCRYPTION 兜底（与 BatchProcessor.Build.cs 同步）
         ApplyCompatDefines(this);
 
         PublicDependencyModuleNames.AddRange(new string[]
         {
             "Core",
+            "CoreUObject",
+            "Engine",
         });
 
         PrivateDependencyModuleNames.AddRange(new string[]
         {
-            "CoreUObject",
-            "Engine",
-            "Slate",
-            "SlateCore",
-            "ToolMenus",
+            "BatchProcessor",
             "UnrealEd",
         });
 
-        // EditorStyle 模块在 UE4~5.7 均有效；若将来引擎移除时再通过 IsUE5xOrNewer 切换
-        PrivateDependencyModuleNames.Add("EditorStyle");
+        // 允许测试访问 BatchProcessor 的 Private 头文件（如 Filter_GeneratedClass）
+        PrivateIncludePaths.AddRange(new string[]
+        {
+            "BatchProcessor/Private",
+        });
     }
 
-    // ── WITH_EDITOR_ENCRYPTION 兜底（与 NexusLink.Build.cs 同步维护） ──────────
-    // 定制引擎在 Misc/Build.h 中可能声明 WITH_EDITOR_ENCRYPTION；
-    // UBT 将其视为未定义符号导致编译失败，此处提前注入兜底定义 0。
+    // ── WITH_EDITOR_ENCRYPTION 兜底（与 BatchProcessor.Build.cs 同步维护） ──────
 
     private static void ApplyCompatDefines(ModuleRules Module)
     {
@@ -68,7 +66,6 @@ public class BatchProcessor : ModuleRules
             System.StringComparer.OrdinalIgnoreCase);
         var list = new System.Collections.Generic.List<string>();
 
-        // EngineDirectory 在 UE 5.8 改为 static 属性；用反射兼容 UE4~5.7 和 5.8+
         try
         {
             var Prop = typeof(ModuleRules).GetProperty("EngineDirectory",

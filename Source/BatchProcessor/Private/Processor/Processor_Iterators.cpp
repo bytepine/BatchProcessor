@@ -83,24 +83,30 @@ bool UProcessor_Iterators::DoProcessor(const FBatchTarget& Target, UBatchContext
 {
 	if (!Property.IsValid()) return false;
 	
-	// 获取属性本身的类型结构
-	FBatchVariable Variable(Property);
+	// 仅支持 struct / object 类型元素；基元类型（int、float、FString 等）
+	// 无法安全构造 FBatchVariable，明确报错跳过以防止非法内存寻址。
 	if (const FStructProperty* StructProperty = CastField<FStructProperty>(Property.Property))
 	{
-		Variable = FBatchVariable(StructProperty->ContainerPtrToValuePtr<void>(Property.Address), StructProperty->Struct);
-	}
-	else if (const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property.Property))
-	{
-		UObject* CurrentObject = ObjectProperty->GetObjectPropertyValue(ObjectProperty->ContainerPtrToValuePtr<void>(Property.Address));
-		if (!IsValid(CurrentObject))
-		{
-			return false;
-		}
-		Variable = FBatchVariable(CurrentObject, CurrentObject->GetClass());
+		const FBatchVariable Variable(
+			StructProperty->ContainerPtrToValuePtr<void>(Property.Address),
+			StructProperty->Struct);
+		if (!Variable.IsValid()) return false;
+		return UBatchFunctionLibrary::DoProcessors(Processors, Target, Context, Variable);
 	}
 
-	if (!Variable.IsValid()) return false;
-	
-	return UBatchFunctionLibrary::DoProcessors(Processors, Target, Context, Variable);
+	if (const FObjectProperty* ObjectProperty = CastField<FObjectProperty>(Property.Property))
+	{
+		UObject* CurrentObject = ObjectProperty->GetObjectPropertyValue(
+			ObjectProperty->ContainerPtrToValuePtr<void>(Property.Address));
+		if (!IsValid(CurrentObject)) return false;
+		const FBatchVariable Variable(CurrentObject, CurrentObject->GetClass());
+		if (!Variable.IsValid()) return false;
+		return UBatchFunctionLibrary::DoProcessors(Processors, Target, Context, Variable);
+	}
+
+	UE_LOG(LogBatchProcessor, Error,
+		TEXT("Iterators: Element type of [%s] is not struct or object — primitive container iteration is not supported"),
+		*Property.Property->GetName());
+	return false;
 }
 

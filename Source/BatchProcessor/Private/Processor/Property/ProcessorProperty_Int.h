@@ -1,22 +1,22 @@
-﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
+// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Processor/ProcessorPropertyBase.h"
-#include "ProcessorProperty_Material.generated.h"
+#include "ProcessorProperty_Int.generated.h"
 
 /**
- * 材质修改器
+ * 整数修改器
  */
-UCLASS(DisplayName="材质修改器")
-class BATCHPROCESSOR_API UProcessorProperty_Material : public UProcessorPropertyBase
+UCLASS(DisplayName="整数修改器")
+class BATCHPROCESSOR_API UProcessorProperty_Int : public UProcessorPropertyBase
 {
 	GENERATED_BODY()
 
 protected:
 	virtual bool OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const override;
-	
+
 	UPROPERTY(EditDefaultsOnly, Category="属性修改", DisplayName="目标值")
-	TSoftObjectPtr<UMaterialInterface> Value;
+	int64 Value;
 };

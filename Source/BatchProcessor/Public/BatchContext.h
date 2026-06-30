@@ -43,7 +43,7 @@ protected:
 	
 	void Initialized(const TSet<FAssetData>& InAssetSet);
 	
-	int32 GetPendingArray(TArray<FSoftObjectPath>& PendingArray);
+	int32 GetPendingArray(TArray<FSoftObjectPath>& PendingArray, int32 MaxCount);
 
 	int32 AddCount();
 private:

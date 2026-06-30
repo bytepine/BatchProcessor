@@ -4,8 +4,6 @@
 #include "BatchAssetSaver.h"
 
 #include "BatchDefine.h"
-#include "Editor.h"
-#include "Subsystems/AssetEditorSubsystem.h"
 #include "UObject/SavePackage.h"
 
 EBatchSaveResult FDefaultBatchAssetSaver::SaveAsset(UObject* Asset)
@@ -15,26 +13,17 @@ EBatchSaveResult FDefaultBatchAssetSaver::SaveAsset(UObject* Asset)
 		return EBatchSaveResult::Failed;
 	}
 
-	// 标记包为脏；若无需标脏则跳过保存（保持原行为）
-	if (!Asset->MarkPackageDirty())
-	{
-		return EBatchSaveResult::Skipped;
-	}
-
 	UPackage* Package = Asset->GetOutermost();
 	if (!Package)
 	{
 		return EBatchSaveResult::Failed;
 	}
 
+	Asset->MarkPackageDirty();
+
 	const FString Filename = FPackageName::LongPackageNameToFilename(
 		Package->GetName(),
 		FPackageName::GetAssetPackageExtension());
-
-	if (GEditor && GEditor->GetEditorSubsystem<UAssetEditorSubsystem>())
-	{
-		GEditor->GetEditorSubsystem<UAssetEditorSubsystem>()->CloseAllEditorsForAsset(Asset);
-	}
 
 	if (!UPackage::SavePackage(Package, nullptr, *Filename, FSavePackageArgs()))
 	{

@@ -1,4 +1,4 @@
-﻿// Copyright Byteyang Games, Inc. All Rights Reserved.
+// Copyright Byteyang Games, Inc. All Rights Reserved.
 
 
 #include "ProcessorProperty_Material.h"

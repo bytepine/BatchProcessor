@@ -5,7 +5,6 @@
 
 #include "BatchDefine.h"
 
-#define MAX_LOAD_COUNT 5
 
 UClass* IBatchScratchPadInterface::GetScratchPadClass() const
 {
@@ -30,9 +29,9 @@ void UBatchContext::Initialized(const TSet<FAssetData>& InAssetSet)
 	LoadArray = InAssetSet.Array();
 }
 
-int32 UBatchContext::GetPendingArray(TArray<FSoftObjectPath>& PendingArray)
+int32 UBatchContext::GetPendingArray(TArray<FSoftObjectPath>& PendingArray, int32 MaxCount)
 {
-	const int32 LoadCount = LoadArray.Num() > MAX_LOAD_COUNT ? MAX_LOAD_COUNT : LoadArray.Num();
+	const int32 LoadCount = FMath::Min(LoadArray.Num(), FMath::Max(MaxCount, 1));
 	for (int i = 0; i < LoadCount; ++i)
 	{
 		PendingArray.Add(LoadArray.Pop().ToSoftObjectPath());

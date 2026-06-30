@@ -52,8 +52,9 @@ FString FBatchTarget::GetPathName() const
 	return Asset ? Asset->GetPathName() : FString();
 }
 
-FString FBatchResult::GetSummary() const
+FString FBatchResult::GetSummary(bool bDryRun) const
 {
-	return FString::Printf(TEXT("处理 %d | 修改 %d | 跳过 %d | 失败 %d"),
-		ProcessedCount, ModifiedCount, SkippedCount, FailedCount);
+	const TCHAR* ModifiedLabel = bDryRun ? TEXT("会修改") : TEXT("修改");
+	return FString::Printf(TEXT("处理 %d | %s %d | 跳过 %d | 失败 %d"),
+		ProcessedCount, ModifiedLabel, ModifiedCount, SkippedCount, FailedCount);
 }

@@ -63,6 +63,12 @@ protected:
 	TArray<UProcessorBase*> Processors;
 
 	/**
+	 * 每批异步加载的资产数量（较大值加快吞吐，但会占用更多内存）
+	 */
+	UPROPERTY(EditDefaultsOnly, Category="扫描", meta=(DisplayName="每批加载数量", ClampMin=1, ClampMax=50))
+	int32 BatchSize = 5;
+
+	/**
 	 * 试运行：仅执行处理流程并记录将要保存的资产，不实际落盘
 	 */
 	UPROPERTY(EditDefaultsOnly, Category="保存", meta=(DisplayName="试运行(不保存)"))

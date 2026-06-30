@@ -131,7 +131,7 @@ FProperty* UBatchFunctionLibrary::FindPropertyByName(const UStruct* Struct, cons
 {
 	for (TFieldIterator<FProperty> PropIt(Struct); PropIt; ++PropIt)
 	{
-		if (PropIt->GetName().StartsWith(PropertyName))
+		if (PropIt->GetName() == PropertyName)
 		{
 			return *PropIt;
 		}
@@ -156,9 +156,25 @@ EBatchSetPropertyResult UBatchFunctionLibrary::SetProperty(const FString& Proper
 		}
 
 		void* PropertyValuePtr = NumericProperty->ContainerPtrToValuePtr<void>(TargetProperty.Address);
-		if (NumericProperty->GetSignedIntPropertyValue(PropertyValuePtr) == Value)
+
+		// uint8/uint16/uint32/uint64 等无符号类型用 GetUnsignedIntPropertyValue 比较，避免符号扩展误判相同值
+		const bool bIsUnsigned = CastField<FByteProperty>(NumericProperty)    != nullptr
+		                      || CastField<FUInt16Property>(NumericProperty)   != nullptr
+		                      || CastField<FUInt32Property>(NumericProperty)   != nullptr
+		                      || CastField<FUInt64Property>(NumericProperty)   != nullptr;
+		if (bIsUnsigned)
 		{
-			return EBatchSetPropertyResult::Same;
+			if (NumericProperty->GetUnsignedIntPropertyValue(PropertyValuePtr) == static_cast<uint64>(Value))
+			{
+				return EBatchSetPropertyResult::Same;
+			}
+		}
+		else
+		{
+			if (NumericProperty->GetSignedIntPropertyValue(PropertyValuePtr) == Value)
+			{
+				return EBatchSetPropertyResult::Same;
+			}
 		}
 
 		NumericProperty->SetIntPropertyValue(PropertyValuePtr, Value);
