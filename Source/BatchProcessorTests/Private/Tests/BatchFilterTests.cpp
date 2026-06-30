@@ -19,7 +19,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 
 bool FBatchFilter_GeneratedClass_ExcludesWhenNotConfigured::RunTest(const FString& Parameters)
 {
-	UClass* FilterClass = FindObject<UClass>(nullptr, TEXT("/Script/BatchProcessor.Filter_GeneratedClass"));
+	UClass* FilterClass = LoadClass<UObject>(nullptr, TEXT("/Script/BatchProcessor.Filter_GeneratedClass"));
 	if (!FilterClass)
 	{
 		for (TObjectIterator<UClass> It; It; ++It)
@@ -31,11 +31,17 @@ bool FBatchFilter_GeneratedClass_ExcludesWhenNotConfigured::RunTest(const FStrin
 			}
 		}
 	}
-	TestNotNull(TEXT("Filter_GeneratedClass 类应已注册"), FilterClass);
+	if (!TestNotNull(TEXT("Filter_GeneratedClass 类应已注册"), FilterClass))
+	{
+		return false;
+	}
 
 	FStaticConstructObjectParameters FilterParams(FilterClass);
 	UFilterBase* Filter = Cast<UFilterBase>(StaticConstructObject_Internal(FilterParams));
-	TestNotNull(TEXT("应能实例化 Filter_GeneratedClass"), Filter);
+	if (!TestNotNull(TEXT("应能实例化 Filter_GeneratedClass"), Filter))
+	{
+		return false;
+	}
 	Filter->AddToRoot();
 
 	UBatchTestObject* DummyObj = NewObject<UBatchTestObject>();
