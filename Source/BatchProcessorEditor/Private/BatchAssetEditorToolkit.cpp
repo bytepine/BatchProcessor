@@ -18,7 +18,7 @@
 #include "Widgets/Docking/SDockTab.h"
 #include "Framework/Docking/TabManager.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
-#include "Styling/AppStyle.h"
+#include "BatchEditorStyleCompat.h"
 
 #define LOCTEXT_NAMESPACE "FBatchAssetEditorToolkit"
 
@@ -164,7 +164,7 @@ void FBatchAssetEditorToolkit::FillToolbar(FToolBarBuilder& Builder)
         NAME_None,
         LOCTEXT("Run", "运行"),
         LOCTEXT("Run_Tooltip", "执行批处理（实际保存）"),
-        FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Play"));
+        FSlateIcon(BATCH_APP_STYLE::GetAppStyleSetName(), "Icons.Play"));
 
     Builder.AddToolBarButton(
         FUIAction(
@@ -173,7 +173,7 @@ void FBatchAssetEditorToolkit::FillToolbar(FToolBarBuilder& Builder)
         NAME_None,
         LOCTEXT("DryRun", "试运行"),
         LOCTEXT("DryRun_Tooltip", "试运行（不保存），预览将修改的资产"),
-        FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Visibility"));
+        FSlateIcon(BATCH_APP_STYLE::GetAppStyleSetName(), "Icons.Visibility"));
 
     Builder.AddToolBarButton(
         FUIAction(
@@ -182,7 +182,7 @@ void FBatchAssetEditorToolkit::FillToolbar(FToolBarBuilder& Builder)
         NAME_None,
         LOCTEXT("Stop", "停止"),
         LOCTEXT("Stop_Tooltip", "停止正在运行的批处理"),
-        FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Stop"));
+        FSlateIcon(BATCH_APP_STYLE::GetAppStyleSetName(), "Icons.Stop"));
 
     Builder.AddSeparator();
 
@@ -191,7 +191,7 @@ void FBatchAssetEditorToolkit::FillToolbar(FToolBarBuilder& Builder)
         NAME_None,
         LOCTEXT("Preview", "预览资产"),
         LOCTEXT("Preview_Tooltip", "扫描并列出将被处理的候选资产（pre-load，不加载内容）"),
-        FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Search"));
+        FSlateIcon(BATCH_APP_STYLE::GetAppStyleSetName(), "Icons.Search"));
 
     Builder.EndSection();
 }

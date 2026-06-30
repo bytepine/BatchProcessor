@@ -13,7 +13,7 @@
 #include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Notifications/SProgressBar.h"
-#include "Styling/AppStyle.h"
+#include "BatchEditorStyleCompat.h"
 
 #define LOCTEXT_NAMESPACE "SBatchConsole"
 
@@ -39,7 +39,7 @@ void SBatchConsole::Construct(const FArguments& InArgs)
             [
                 SNew(STextBlock)
                 .Text(LOCTEXT("StatusLabel", "状态："))
-                .Font(FAppStyle::Get().GetFontStyle("BoldFont"))
+                .Font(BATCH_APP_STYLE::Get().GetFontStyle("BoldFont"))
             ]
             + SHorizontalBox::Slot()
             .AutoWidth()
@@ -48,7 +48,7 @@ void SBatchConsole::Construct(const FArguments& InArgs)
                 SNew(STextBlock)
                 .Text(this, &SBatchConsole::GetStatusText)
                 .ColorAndOpacity(this, &SBatchConsole::GetStatusColor)
-                .Font(FAppStyle::Get().GetFontStyle("BoldFont"))
+                .Font(BATCH_APP_STYLE::Get().GetFontStyle("BoldFont"))
             ]
         ]
 

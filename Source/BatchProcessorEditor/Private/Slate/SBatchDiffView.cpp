@@ -3,7 +3,7 @@
 #include "Slate/SBatchDiffView.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBox.h"
-#include "Styling/AppStyle.h"
+#include "BatchEditorStyleCompat.h"
 
 #define LOCTEXT_NAMESPACE "SBatchDiffView"
 
@@ -24,7 +24,7 @@ void SBatchDiffView::Construct(const FArguments& InArgs)
             [
                 SNew(STextBlock)
                 .Text(LOCTEXT("Title", "Dry-run 差异视图（P3）"))
-                .Font(FAppStyle::Get().GetFontStyle("BoldFont"))
+                .Font(BATCH_APP_STYLE::Get().GetFontStyle("BoldFont"))
             ]
 
             + SVerticalBox::Slot()
