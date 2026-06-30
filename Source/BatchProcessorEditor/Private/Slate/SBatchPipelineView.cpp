@@ -449,12 +449,31 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
                 [ MainRow ]
             ]
         ]
-        // 子组区域（无选中高亮）
+        // 子组区域：accent 色导引线 + 轻微背景加深
         + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SBox)
             .Visibility(bExpanded ? EVisibility::Visible : EVisibility::Collapsed)
-            [ BuildSubGroups(Entry) ]
+            [
+                SNew(SHorizontalBox)
+                // 左侧导引线（accent 色，贯通子组高度）
+                + SHorizontalBox::Slot().AutoWidth()
+                [
+                    SNew(SBorder)
+                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderBackgroundColor(FSlateColor(FLinearColor(BarColor.R, BarColor.G, BarColor.B, 0.45f)))
+                    .Padding(FMargin(2.f, 0.f))
+                ]
+                // 子组内容（背景轻微加深）
+                + SHorizontalBox::Slot().FillWidth(1.f)
+                [
+                    SNew(SBorder)
+                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderBackgroundColor(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.14f)))
+                    .Padding(0.f)
+                    [ BuildSubGroups(Entry) ]
+                ]
+            ]
         ];
 }
 
@@ -672,8 +691,27 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
         [
             SNew(SBox)
             .Visibility(bSubExpanded ? EVisibility::Visible : EVisibility::Collapsed)
-            .Padding(FMargin(20.f, 0.f, 0.f, 0.f)) // 缩进一级
-            [ BuildSubGroups(SubEntry) ]
+            .Padding(FMargin(20.f, 0.f, 0.f, 0.f))
+            [
+                SNew(SHorizontalBox)
+                // 灰色导引线（第二层级）
+                + SHorizontalBox::Slot().AutoWidth()
+                [
+                    SNew(SBorder)
+                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderBackgroundColor(FSlateColor(FLinearColor(0.45f, 0.45f, 0.45f, 0.45f)))
+                    .Padding(FMargin(2.f, 0.f))
+                ]
+                // 子子组内容（背景再加深一级）
+                + SHorizontalBox::Slot().FillWidth(1.f)
+                [
+                    SNew(SBorder)
+                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderBackgroundColor(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.12f)))
+                    .Padding(0.f)
+                    [ BuildSubGroups(SubEntry) ]
+                ]
+            ]
         ];
 }
 
