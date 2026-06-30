@@ -44,7 +44,7 @@ void SBatchPipelineView::Construct(const FArguments& InArgs)
 
             + SHorizontalBox::Slot().FillWidth(1.f)
             [
-                BuildLane(LOCTEXT("ScannerLane", "SCANNERS"), ScannerColor,
+                BuildLane(LOCTEXT("ScannerLane", "扫描器"), ScannerColor,
                     ScannerEntries, ScannerCardsBox, UScannerBase::StaticClass(),
                     [this](UClass* C){ OnScannerAdd(C); },
                     [this](int32 I) { OnScannerRemove(I); })
@@ -54,7 +54,7 @@ void SBatchPipelineView::Construct(const FArguments& InArgs)
 
             + SHorizontalBox::Slot().FillWidth(1.f)
             [
-                BuildLane(LOCTEXT("FilterLane", "FILTERS"), FilterColor,
+                BuildLane(LOCTEXT("FilterLane", "过滤器"), FilterColor,
                     FilterEntries, FilterCardsBox, UFilterBase::StaticClass(),
                     [this](UClass* C){ OnFilterAdd(C); },
                     [this](int32 I) { OnFilterRemove(I); })
@@ -64,7 +64,7 @@ void SBatchPipelineView::Construct(const FArguments& InArgs)
 
             + SHorizontalBox::Slot().FillWidth(1.f)
             [
-                BuildLane(LOCTEXT("ProcessorLane", "PROCESSORS"), ProcessorColor,
+                BuildLane(LOCTEXT("ProcessorLane", "处理器"), ProcessorColor,
                     ProcessorEntries, ProcessorCardsBox, UProcessorBase::StaticClass(),
                     [this](UClass* C){ OnProcessorAdd(C); },
                     [this](int32 I) { OnProcessorRemove(I); })
