@@ -65,32 +65,32 @@ void FBatchAssetEditorToolkit::InitBatchAssetEditor(EToolkitMode::Type Mode,
     ExtendToolbar();
 
     // ── 默认 Tab 布局 ────────────────────────────────────────────────────────
-    // 三列：流水线(导航) | 功能区(控制台/预览/结果/差异) | 属性(编辑)
-    // 属性固定在最右，便于始终看到选中组件的参数；功能区居中获得最大宽度。
+    // 三列：功能区(控制台/预览/结果/差异) | 流水线(图编辑) | 属性(组件参数)
+    // 左侧功能区显示运行信息；中间流水线是核心操作区；右侧属性始终可见。
     TSharedRef<FTabManager::FLayout> Layout =
-        FTabManager::NewLayout("BatchAssetEditor_Layout_v2")
+        FTabManager::NewLayout("BatchAssetEditor_Layout_v3")
         ->AddArea(
             FTabManager::NewPrimaryArea()
             ->SetOrientation(Orient_Horizontal)
-            // 左：流水线（窄导航栏）
+            // 左：功能区（控制台 / 预览 / 结果 / 差异）
             ->Split(
                 FTabManager::NewStack()
-                ->SetSizeCoefficient(0.20f)
-                ->AddTab(PipelineTabId, ETabState::OpenedTab)
-            )
-            // 中：功能区（控制台 / 预览 / 结果 / 差异）
-            ->Split(
-                FTabManager::NewStack()
-                ->SetSizeCoefficient(0.45f)
+                ->SetSizeCoefficient(0.30f)
                 ->AddTab(ConsoleTabId, ETabState::OpenedTab)
                 ->AddTab(PreviewTabId, ETabState::OpenedTab)
                 ->AddTab(ResultTabId, ETabState::OpenedTab)
                 ->AddTab(DiffTabId, ETabState::OpenedTab)
             )
-            // 右：属性面板（始终可见，编辑选中组件参数）
+            // 中：流水线（节点流图，核心编辑区）
             ->Split(
                 FTabManager::NewStack()
-                ->SetSizeCoefficient(0.35f)
+                ->SetSizeCoefficient(0.40f)
+                ->AddTab(PipelineTabId, ETabState::OpenedTab)
+            )
+            // 右：属性面板（编辑选中组件参数）
+            ->Split(
+                FTabManager::NewStack()
+                ->SetSizeCoefficient(0.30f)
                 ->AddTab(DetailsTabId, ETabState::OpenedTab)
             )
         );
