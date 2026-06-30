@@ -9,7 +9,7 @@ bool UProcessorProperty_Object::OnProcessing(const FBatchTarget& Target, UBatchC
 {
 	bool bResult = Super::OnProcessing(Target, Context, Variable);
 
-	const EBatchSetPropertyResult SetResult = UBatchFunctionLibrary::SetProperty(PropertyName, Variable, Value.Get());
+	const EBatchSetPropertyResult SetResult = UBatchFunctionLibrary::SetProperty(PropertyName, Variable, Value);
 
 	LogResult(SetResult);
 
