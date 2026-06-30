@@ -20,18 +20,17 @@
 #define LOCTEXT_NAMESPACE "SBatchPipelineView"
 
 // ── 类型颜色 ─────────────────────────────────────────────────────────────────
-const FLinearColor SBatchPipelineView::ScannerColor   = FLinearColor(0.20f, 0.50f, 0.90f); // 蓝
-const FLinearColor SBatchPipelineView::FilterColor    = FLinearColor(0.90f, 0.55f, 0.15f); // 橙
-const FLinearColor SBatchPipelineView::ProcessorColor = FLinearColor(0.20f, 0.72f, 0.45f); // 绿
+const FLinearColor SBatchPipelineView::ScannerColor   = FLinearColor(0.20f, 0.50f, 0.90f);
+const FLinearColor SBatchPipelineView::FilterColor    = FLinearColor(0.90f, 0.55f, 0.15f);
+const FLinearColor SBatchPipelineView::ProcessorColor = FLinearColor(0.20f, 0.72f, 0.45f);
 
 // ── Construct ────────────────────────────────────────────────────────────────
 
 void SBatchPipelineView::Construct(const FArguments& InArgs)
 {
-    AssetPtr          = InArgs._Asset;
+    AssetPtr           = InArgs._Asset;
     OnSelectionChanged = InArgs._OnSelectionChanged;
 
-    // 三泳道 + 两箭头，横向铺开，外层 ScrollBox 允许窄布局时水平滚动
     ChildSlot
     [
         SNew(SScrollBox)
@@ -40,7 +39,6 @@ void SBatchPipelineView::Construct(const FArguments& InArgs)
         [
             SNew(SHorizontalBox)
 
-            // ── 扫描器泳道 ────────────────────────────────────────────────────
             + SHorizontalBox::Slot()
             .FillWidth(1.f)
             [
@@ -54,16 +52,14 @@ void SBatchPipelineView::Construct(const FArguments& InArgs)
                     [this](int32 I) { OnScannerRemove(I); })
             ]
 
-            // ── 箭头 ─────────────────────────────────────────────────────────
             + SHorizontalBox::Slot()
             .AutoWidth()
             .VAlign(VAlign_Top)
-            .Padding(0.f, 36.f) // 与标题头垂直对齐
+            .Padding(0.f, 36.f)
             [
                 BuildArrow()
             ]
 
-            // ── 过滤器泳道 ────────────────────────────────────────────────────
             + SHorizontalBox::Slot()
             .FillWidth(1.f)
             [
@@ -77,7 +73,6 @@ void SBatchPipelineView::Construct(const FArguments& InArgs)
                     [this](int32 I) { OnFilterRemove(I); })
             ]
 
-            // ── 箭头 ─────────────────────────────────────────────────────────
             + SHorizontalBox::Slot()
             .AutoWidth()
             .VAlign(VAlign_Top)
@@ -86,7 +81,6 @@ void SBatchPipelineView::Construct(const FArguments& InArgs)
                 BuildArrow()
             ]
 
-            // ── 处理器泳道 ────────────────────────────────────────────────────
             + SHorizontalBox::Slot()
             .FillWidth(1.f)
             [
@@ -127,9 +121,12 @@ void SBatchPipelineView::Refresh()
     PopulateEntries(FilterEntries,    FilterObjs);
     PopulateEntries(ProcessorEntries, ProcObjs);
 
-    if (ScannerCardsBox)   RebuildCards(*ScannerCardsBox,   ScannerEntries,   [this](int32 I){ OnScannerRemove(I); });
-    if (FilterCardsBox)    RebuildCards(*FilterCardsBox,    FilterEntries,    [this](int32 I){ OnFilterRemove(I); });
-    if (ProcessorCardsBox) RebuildCards(*ProcessorCardsBox, ProcessorEntries, [this](int32 I){ OnProcessorRemove(I); });
+    if (ScannerCardsBox)
+        RebuildCards(*ScannerCardsBox,   ScannerEntries,   ScannerColor,   [this](int32 I){ OnScannerRemove(I); });
+    if (FilterCardsBox)
+        RebuildCards(*FilterCardsBox,    FilterEntries,    FilterColor,    [this](int32 I){ OnFilterRemove(I); });
+    if (ProcessorCardsBox)
+        RebuildCards(*ProcessorCardsBox, ProcessorEntries, ProcessorColor, [this](int32 I){ OnProcessorRemove(I); });
 }
 
 void SBatchPipelineView::PopulateEntries(TArray<FEntryPtr>& Out, const TArray<UObject*>& Components) const
@@ -148,9 +145,9 @@ void SBatchPipelineView::PopulateEntries(TArray<FEntryPtr>& Out, const TArray<UO
             : FText::FromString(DN);
 
         TArray<FText> Errors;
-        if (auto* S = Cast<UScannerBase>(Comp))    S->ValidateConfig(Errors);
-        if (auto* F = Cast<UFilterBase>(Comp))     F->ValidateConfig(Errors);
-        if (auto* P = Cast<UProcessorBase>(Comp))  P->ValidateConfig(Errors);
+        if (auto* S = Cast<UScannerBase>(Comp))   S->ValidateConfig(Errors);
+        if (auto* F = Cast<UFilterBase>(Comp))    F->ValidateConfig(Errors);
+        if (auto* P = Cast<UProcessorBase>(Comp)) P->ValidateConfig(Errors);
 
         Entry->bHasError = !Errors.IsEmpty();
         if (Entry->bHasError) Entry->ErrorText = Errors[0];
@@ -179,7 +176,6 @@ TSharedRef<SWidget> SBatchPipelineView::BuildLane(
         [
             SNew(SVerticalBox)
 
-            // ── 标题头（彩色背景）───────────────────────────────────────────
             + SVerticalBox::Slot()
             .AutoHeight()
             [
@@ -207,7 +203,6 @@ TSharedRef<SWidget> SBatchPipelineView::BuildLane(
                 ]
             ]
 
-            // ── 分隔线 ───────────────────────────────────────────────────────
             + SVerticalBox::Slot()
             .AutoHeight()
             [
@@ -217,7 +212,6 @@ TSharedRef<SWidget> SBatchPipelineView::BuildLane(
                 .Padding(0.f, 2.f)
             ]
 
-            // ── 卡片区 ───────────────────────────────────────────────────────
             + SVerticalBox::Slot()
             .FillHeight(1.f)
             .Padding(6.f, 4.f)
@@ -243,7 +237,6 @@ TSharedRef<SWidget> SBatchPipelineView::BuildArrow() const
 
 TSharedRef<SWidget> SBatchPipelineView::BuildAddMenu(UClass* BaseClass, TFunction<void(UClass*)> AddFn) const
 {
-    // 枚举所有已注册的非 Abstract 具体子类
     TArray<UClass*> SubClasses;
     for (TObjectIterator<UClass> It; It; ++It)
     {
@@ -288,18 +281,10 @@ TSharedRef<SWidget> SBatchPipelineView::BuildAddMenu(UClass* BaseClass, TFunctio
 
 void SBatchPipelineView::RebuildCards(SVerticalBox& CardsBox,
                                       const TArray<FEntryPtr>& Entries,
+                                      const FLinearColor& AccentColor,
                                       TFunction<void(int32)> RemoveFn)
 {
     CardsBox.ClearChildren();
-
-    // 确定这是哪类组件来取颜色
-    FLinearColor AccentColor = FLinearColor::White;
-    if (!Entries.IsEmpty() && Entries[0]->Component)
-    {
-        if (Entries[0]->Component->IsA<UScannerBase>())   AccentColor = ScannerColor;
-        else if (Entries[0]->Component->IsA<UFilterBase>())    AccentColor = FilterColor;
-        else if (Entries[0]->Component->IsA<UProcessorBase>()) AccentColor = ProcessorColor;
-    }
 
     for (int32 i = 0; i < Entries.Num(); ++i)
     {
@@ -314,7 +299,6 @@ void SBatchPipelineView::RebuildCards(SVerticalBox& CardsBox,
         ];
     }
 
-    // 空状态提示
     if (Entries.IsEmpty())
     {
         CardsBox.AddSlot()
@@ -334,108 +318,130 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry,
                                                    const FLinearColor& AccentColor,
                                                    TFunction<void(int32)> RemoveFn)
 {
-    const bool bHasError = Entry->bHasError;
-    const FLinearColor CardAccent = bHasError ? FLinearColor(0.9f, 0.55f, 0.05f) : AccentColor;
+    const bool bHasError  = Entry->bHasError;
+    const bool bSelected  = (Entry->Component == SelectedComponent.Get());
+    const FLinearColor BarColor = bHasError ? FLinearColor(0.9f, 0.55f, 0.05f) : AccentColor;
+
+    // 选中时：背景带颜色半透明 tint，左竖条加粗加亮
+    const FLinearColor BgTint  = bSelected
+        ? FLinearColor(BarColor.R, BarColor.G, BarColor.B, 0.18f)
+        : FLinearColor(0.f, 0.f, 0.f, 0.f);
+    const float BarWidth = bSelected ? 5.f : 3.f;
+    const FLinearColor BarFinal = bSelected ? BarColor * 1.4f : BarColor * 0.85f;
+
     TWeakPtr<FPipelineEntry> WeakEntry = Entry;
 
-    return SNew(SBorder)
-        .BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
-        .Padding(0.f)
-        .Cursor(EMouseCursor::Hand)
-        .OnMouseButtonDown_Lambda([this, WeakEntry](const FGeometry&, const FPointerEvent& Event) -> FReply
-        {
-            if (Event.GetEffectingButton() == EKeys::LeftMouseButton)
-            {
-                if (auto Pinned = WeakEntry.Pin()) SelectEntry(Pinned);
-                return FReply::Handled();
-            }
-            return FReply::Unhandled();
-        })
+    return
+        // 选中时外层加一圈高亮描边
+        SNew(SBorder)
+        .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+        .BorderBackgroundColor(FSlateColor(bSelected
+            ? FLinearColor(BarColor.R, BarColor.G, BarColor.B, 0.6f)
+            : FLinearColor(0.f, 0.f, 0.f, 0.f)))
+        .Padding(bSelected ? 1.f : 0.f)
         [
-            SNew(SHorizontalBox)
-
-            // 左侧彩色竖条（类型 accent）
-            + SHorizontalBox::Slot()
-            .AutoWidth()
-            [
-                SNew(SBorder)
-                .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
-                .BorderBackgroundColor(FSlateColor(CardAccent))
-                .Padding(3.f, 0.f)
-            ]
-
-            // 主体内容
-            + SHorizontalBox::Slot()
-            .FillWidth(1.f)
-            .Padding(6.f, 4.f)
-            [
-                SNew(SVerticalBox)
-
-                // 显示名称行
-                + SVerticalBox::Slot()
-                .AutoHeight()
-                [
-                    SNew(SHorizontalBox)
-
-                    // 警告 / 正常图标
-                    + SHorizontalBox::Slot()
-                    .AutoWidth()
-                    .VAlign(VAlign_Center)
-                    .Padding(0.f, 0.f, 4.f, 0.f)
-                    [
-                        SNew(STextBlock)
-                        .Text(bHasError
-                            ? FText::FromString(TEXT("⚠"))
-                            : FText::FromString(TEXT("●")))
-                        .ColorAndOpacity(FSlateColor(bHasError
-                            ? FLinearColor(1.f, 0.7f, 0.f)
-                            : CardAccent))
-                    ]
-
-                    // 组件名
-                    + SHorizontalBox::Slot()
-                    .FillWidth(1.f)
-                    .VAlign(VAlign_Center)
-                    [
-                        SNew(STextBlock)
-                        .Text(Entry->DisplayName)
-                        .Font(FAppStyle::GetFontStyle("SmallFont"))
-                        .ToolTipText(bHasError ? Entry->ErrorText : FText::GetEmpty())
-                    ]
-                ]
-
-                // 校验错误文字（可选展开）
-                + SVerticalBox::Slot()
-                .AutoHeight()
-                [
-                    SNew(STextBlock)
-                    .Visibility(bHasError ? EVisibility::Visible : EVisibility::Collapsed)
-                    .Text(Entry->ErrorText)
-                    .Font(FCoreStyle::GetDefaultFontStyle("Italic", 7))
-                    .ColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.7f, 0.f)))
-                    .AutoWrapText(true)
-                ]
-            ]
-
-            // 删除按钮
-            + SHorizontalBox::Slot()
-            .AutoWidth()
-            .VAlign(VAlign_Center)
-            .Padding(0.f, 0.f, 4.f, 0.f)
-            [
-                SNew(SButton)
-                .ButtonStyle(FAppStyle::Get(), "NoBorder")
-                .ToolTipText(LOCTEXT("RemoveCard", "移除此组件"))
-                .OnClicked_Lambda([RemoveFn, Index]() -> FReply
+            SNew(SBorder)
+            .BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
+            .BorderBackgroundColor(FSlateColor(BgTint))
+            .Padding(0.f)
+            .Cursor(EMouseCursor::Hand)
+            .OnMouseButtonDown_Lambda([this, WeakEntry](const FGeometry&, const FPointerEvent& Event) -> FReply
+            {
+                if (Event.GetEffectingButton() == EKeys::LeftMouseButton)
                 {
-                    RemoveFn(Index);
+                    if (auto Pinned = WeakEntry.Pin())
+                        SelectComponent(Pinned->Component);
                     return FReply::Handled();
-                })
+                }
+                return FReply::Unhandled();
+            })
+            [
+                SNew(SHorizontalBox)
+
+                // 左侧彩色竖条
+                + SHorizontalBox::Slot()
+                .AutoWidth()
                 [
-                    SNew(STextBlock)
-                    .Text(FText::FromString(TEXT("✕")))
-                    .Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
-                    .ColorAndOpacity(FSlateColor::UseSubduedForeground())
+                    SNew(SBorder)
+                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderBackgroundColor(FSlateColor(BarFinal))
+                    .Padding(BarWidth, 0.f)
+                ]
+
+                // 主体内容
+                + SHorizontalBox::Slot()
+                .FillWidth(1.f)
+                .Padding(6.f, 4.f)
+                [
+                    SNew(SVerticalBox)
+
+                    + SVerticalBox::Slot()
+                    .AutoHeight()
+                    [
+                        SNew(SHorizontalBox)
+
+                        + SHorizontalBox::Slot()
+                        .AutoWidth()
+                        .VAlign(VAlign_Center)
+                        .Padding(0.f, 0.f, 4.f, 0.f)
+                        [
+                            SNew(STextBlock)
+                            .Text(bHasError
+                                ? FText::FromString(TEXT("⚠"))
+                                : FText::FromString(TEXT("●")))
+                            .ColorAndOpacity(FSlateColor(bHasError
+                                ? FLinearColor(1.f, 0.7f, 0.f)
+                                : BarFinal))
+                        ]
+
+                        + SHorizontalBox::Slot()
+                        .FillWidth(1.f)
+                        .VAlign(VAlign_Center)
+                        [
+                            SNew(STextBlock)
+                            .Text(Entry->DisplayName)
+                            .Font(bSelected
+                                ? FAppStyle::GetFontStyle("BoldFont")
+                                : FAppStyle::GetFontStyle("SmallFont"))
+                            .ColorAndOpacity(FSlateColor(bSelected
+                                ? FLinearColor::White
+                                : FSlateColor::UseForeground()))
+                            .ToolTipText(bHasError ? Entry->ErrorText : FText::GetEmpty())
+                        ]
+                    ]
+
+                    + SVerticalBox::Slot()
+                    .AutoHeight()
+                    [
+                        SNew(STextBlock)
+                        .Visibility(bHasError ? EVisibility::Visible : EVisibility::Collapsed)
+                        .Text(Entry->ErrorText)
+                        .Font(FCoreStyle::GetDefaultFontStyle("Italic", 7))
+                        .ColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.7f, 0.f)))
+                        .AutoWrapText(true)
+                    ]
+                ]
+
+                // 删除按钮
+                + SHorizontalBox::Slot()
+                .AutoWidth()
+                .VAlign(VAlign_Center)
+                .Padding(0.f, 0.f, 4.f, 0.f)
+                [
+                    SNew(SButton)
+                    .ButtonStyle(FAppStyle::Get(), "NoBorder")
+                    .ToolTipText(LOCTEXT("RemoveCard", "移除此组件"))
+                    .OnClicked_Lambda([RemoveFn, Index]() -> FReply
+                    {
+                        RemoveFn(Index);
+                        return FReply::Handled();
+                    })
+                    [
+                        SNew(STextBlock)
+                        .Text(FText::FromString(TEXT("✕")))
+                        .Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+                        .ColorAndOpacity(FSlateColor::UseSubduedForeground())
+                    ]
                 ]
             ]
         ];
@@ -443,13 +449,22 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry,
 
 // ── 选中 ─────────────────────────────────────────────────────────────────────
 
-void SBatchPipelineView::SelectEntry(FEntryPtr Entry)
+void SBatchPipelineView::SelectComponent(UObject* Component)
 {
-    SelectedEntry = Entry;
-    if (Entry.IsValid())
-    {
-        OnSelectionChanged.ExecuteIfBound(Entry->Component);
-    }
+    // 点击已选中的节点 → 取消选中
+    if (SelectedComponent.Get() == Component)
+        Component = nullptr;
+
+    SelectedComponent = Component;
+    OnSelectionChanged.ExecuteIfBound(Component);
+
+    // 重建卡片以更新高亮（Entries 已存在，仅重建 Widget 树）
+    if (ScannerCardsBox)
+        RebuildCards(*ScannerCardsBox,   ScannerEntries,   ScannerColor,   [this](int32 I){ OnScannerRemove(I); });
+    if (FilterCardsBox)
+        RebuildCards(*FilterCardsBox,    FilterEntries,    FilterColor,    [this](int32 I){ OnFilterRemove(I); });
+    if (ProcessorCardsBox)
+        RebuildCards(*ProcessorCardsBox, ProcessorEntries, ProcessorColor, [this](int32 I){ OnProcessorRemove(I); });
 }
 
 // ── 添加 / 删除 ──────────────────────────────────────────────────────────────
@@ -480,7 +495,7 @@ void SBatchPipelineView::OnProcessorAdd(UClass* Class)
 {
     UBatchAsset* Asset = AssetPtr.Get();
     if (!Asset || !Class) return;
-    FScopedTransaction Tx(LOCTEXT("AddProcessor", "添加处理器"));
+    FScopedTransaction Tx(LOCTEXT("添加处理器", "AddProcessor"));
     Asset->Modify();
     Asset->AddProcessor(NewObject<UProcessorBase>(Asset, Class, NAME_None, RF_Transactional));
     Asset->MarkPackageDirty();
@@ -491,6 +506,13 @@ void SBatchPipelineView::OnScannerRemove(int32 Index)
 {
     UBatchAsset* Asset = AssetPtr.Get();
     if (!Asset) return;
+    // 若删除的是当前选中项，清除选中
+    if (Asset->GetScanners().IsValidIndex(Index) &&
+        SelectedComponent.Get() == Asset->GetScanners()[Index])
+    {
+        SelectedComponent = nullptr;
+        OnSelectionChanged.ExecuteIfBound(nullptr);
+    }
     FScopedTransaction Tx(LOCTEXT("RemoveScanner", "删除扫描器"));
     Asset->Modify();
     Asset->RemoveScanner(Index);
@@ -502,6 +524,12 @@ void SBatchPipelineView::OnFilterRemove(int32 Index)
 {
     UBatchAsset* Asset = AssetPtr.Get();
     if (!Asset) return;
+    if (Asset->GetFilters().IsValidIndex(Index) &&
+        SelectedComponent.Get() == Asset->GetFilters()[Index])
+    {
+        SelectedComponent = nullptr;
+        OnSelectionChanged.ExecuteIfBound(nullptr);
+    }
     FScopedTransaction Tx(LOCTEXT("RemoveFilter", "删除过滤器"));
     Asset->Modify();
     Asset->RemoveFilter(Index);
@@ -513,6 +541,12 @@ void SBatchPipelineView::OnProcessorRemove(int32 Index)
 {
     UBatchAsset* Asset = AssetPtr.Get();
     if (!Asset) return;
+    if (Asset->GetProcessors().IsValidIndex(Index) &&
+        SelectedComponent.Get() == Asset->GetProcessors()[Index])
+    {
+        SelectedComponent = nullptr;
+        OnSelectionChanged.ExecuteIfBound(nullptr);
+    }
     FScopedTransaction Tx(LOCTEXT("RemoveProcessor", "删除处理器"));
     Asset->Modify();
     Asset->RemoveProcessor(Index);

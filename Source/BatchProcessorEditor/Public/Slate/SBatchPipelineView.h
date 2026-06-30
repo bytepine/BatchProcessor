@@ -80,6 +80,7 @@ private:
     /** 重建某个泳道内的所有卡片 Widget */
     void RebuildCards(SVerticalBox& CardsBox,
                       const TArray<FEntryPtr>& Entries,
+                      const FLinearColor& AccentColor,
                       TFunction<void(int32)> RemoveFn);
 
     /** 构建单张组件卡片 */
@@ -104,10 +105,15 @@ private:
 
     // ── 选中 ─────────────────────────────────────────────────────────────────
 
-    void SelectEntry(FEntryPtr Entry);
+    /** 选中某个节点（更新高亮并通知外部）；传 nullptr 清除选中 */
+    void SelectComponent(UObject* Component);
 
-    /** 当前选中项（高亮） */
-    TWeakPtr<FPipelineEntry>        SelectedEntry;
+    /**
+     * 当前选中的组件对象指针。
+     * 使用 UObject 弱指针而非 FPipelineEntry 弱指针，
+     * 这样 Refresh() 重建 Entry 数组后选中状态仍然有效。
+     */
+    TWeakObjectPtr<UObject>         SelectedComponent;
 
     TWeakObjectPtr<UBatchAsset>     AssetPtr;
     FOnPipelineSelectionChanged     OnSelectionChanged;
