@@ -516,39 +516,23 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubGroup(FEntryPtr ParentEntry, FSu
         ];
     }
 
-    return SNew(SVerticalBox)
-        // 子组标题行
-        + SVerticalBox::Slot().AutoHeight()
+    // 添加行（底部，无标题头）
+    ItemsBox->AddSlot().AutoHeight().Padding(FMargin(22.f, 2.f, 4.f, 2.f))
+    [
+        SNew(SComboButton)
+        .ButtonStyle(FAppStyle::Get(), "NoBorder")
+        .ContentPadding(FMargin(2.f, 1.f))
+        .ButtonContent()
         [
-            SNew(SBorder)
-            .BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
-            .Padding(FMargin(20.f, 3.f, 4.f, 3.f)) // 左缩进
-            [
-                SNew(SHorizontalBox)
-                + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
-                [
-                    SNew(STextBlock).Text(Group.DisplayName)
-                    .Font(FCoreStyle::GetDefaultFontStyle("Italic", 8))
-                    .ColorAndOpacity(FSlateColor::UseSubduedForeground())
-                ]
-                + SHorizontalBox::Slot().AutoWidth()
-                [
-                    SNew(SComboButton)
-                    .ButtonStyle(FAppStyle::Get(), "NoBorder")
-                    .ContentPadding(FMargin(2.f, 1.f))
-                    .ButtonContent()
-                    [
-                        SNew(STextBlock).Text(FText::FromString(TEXT("＋")))
-                        .Font(FCoreStyle::GetDefaultFontStyle("Regular", 9))
-                        .ColorAndOpacity(FSlateColor::UseForeground())
-                    ]
-                    .MenuContent()[ MB.MakeWidget() ]
-                ]
-            ]
+            SNew(STextBlock).Text(LOCTEXT("AddSubProc", "＋ 添加"))
+            .Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+            .ColorAndOpacity(FSlateColor::UseSubduedForeground())
         ]
-        // 子条目
-        + SVerticalBox::Slot().AutoHeight().Padding(FMargin(20.f, 0.f, 0.f, 0.f))
-        [ ItemsBox ];
+        .MenuContent()[ MB.MakeWidget() ]
+    ];
+
+    return SNew(SBox).Padding(FMargin(0.f, 2.f, 0.f, 0.f))
+    [ ItemsBox ];
 }
 
 TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSubGroupEntry& Group,
