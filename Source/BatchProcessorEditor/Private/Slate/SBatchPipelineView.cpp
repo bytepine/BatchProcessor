@@ -171,7 +171,7 @@ void SBatchPipelineView::PopulateSubGroups(FPipelineEntry& Entry) const
             SubEntry->DisplayName = ItemDN.IsEmpty()
                 ? FText::FromString(Item->GetClass()->GetName())
                 : FText::FromString(ItemDN);
-            PopulateSubGroups(*SubEntry); // 支持多层嵌套
+                // 子条目不再递归扫描，保持单层展示
             Group.Items.Add(SubEntry);
         }
         Entry.SubGroups.Add(MoveTemp(Group));
@@ -371,7 +371,6 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
                         CollapsedComponents.Remove(Pinned->Component);
                     else
                         CollapsedComponents.Add(Pinned->Component);
-                    // 仅重建卡片，不重新 PopulateEntries
                     if (ScannerCardsBox)
                         RebuildCards(*ScannerCardsBox, ScannerEntries, ScannerColor, [this](int32 I){ OnScannerRemove(I); });
                     if (FilterCardsBox)
@@ -382,9 +381,11 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
                 return FReply::Handled();
             })
             [
-                SNew(STextBlock)
-                .Text(bExpanded ? FText::FromString(TEXT("▾")) : FText::FromString(TEXT("▸")))
-                .Font(FCoreStyle::GetDefaultFontStyle("Regular", 9))
+                // 使用 FAppStyle 内置树形箭头，避免 Unicode 字符渲染异常
+                SNew(SImage)
+                .Image(bExpanded
+                    ? FAppStyle::GetBrush("TreeArrow_Expanded")
+                    : FAppStyle::GetBrush("TreeArrow_Collapsed"))
                 .ColorAndOpacity(FSlateColor::UseSubduedForeground())
             ]
         ]
