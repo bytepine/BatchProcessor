@@ -18,8 +18,10 @@
 
 #if BP_UE_HAS_APP_STYLE
     #include "Styling/AppStyle.h"
-    #define BATCH_APP_STYLE FAppStyle
+    #define BATCH_APP_STYLE           FAppStyle
+    #define BATCH_APP_STYLE_SET_NAME  FAppStyle::GetAppStyleSetName()
 #else
     #include "EditorStyleSet.h"
-    #define BATCH_APP_STYLE FEditorStyle
+    #define BATCH_APP_STYLE           FEditorStyle
+    #define BATCH_APP_STYLE_SET_NAME  FEditorStyle::GetStyleSetName()
 #endif

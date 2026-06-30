@@ -125,7 +125,7 @@ void SBatchPipelineView::PopulateEntries(TArray<FEntryPtr>& Out, const TArray<UO
         if (auto* S = Cast<UScannerBase>(Comp))   S->ValidateConfig(Errors);
         if (auto* F = Cast<UFilterBase>(Comp))    F->ValidateConfig(Errors);
         if (auto* P = Cast<UProcessorBase>(Comp)) P->ValidateConfig(Errors);
-        Entry->bHasError = !Errors.IsEmpty();
+        Entry->bHasError = (Errors.Num() > 0);
         if (Entry->bHasError) Entry->ErrorText = Errors[0];
 
         // 通过反射读取备注属性（各基类均有 Remark FStrProperty）
@@ -285,7 +285,7 @@ void SBatchPipelineView::RebuildCards(SVerticalBox& CardsBox,
         CardsBox.AddSlot().AutoHeight().Padding(0.f, 0.f, 0.f, 4.f)
         [ BuildCard(Entries[i], i, AccentColor, RemoveFn) ];
     }
-    if (Entries.IsEmpty())
+    if (Entries.Num() == 0)
     {
         CardsBox.AddSlot().AutoHeight().Padding(4.f, 8.f)
         [
@@ -303,7 +303,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
 {
     const bool bHasError = Entry->bHasError;
     const bool bSelected = (Entry->Component == SelectedComponent.Get());
-    const bool bHasSubs  = !Entry->SubGroups.IsEmpty();
+    const bool bHasSubs  = (Entry->SubGroups.Num() > 0);
     const bool bExpanded = bHasSubs && !CollapsedComponents.Contains(Entry->Component);
 
     const FLinearColor BarColor  = bHasError ? FLinearColor(0.9f, 0.55f, 0.05f) : AccentColor;
@@ -540,7 +540,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubGroup(FEntryPtr ParentEntry, FSu
         ItemsBox->AddSlot().AutoHeight().Padding(0.f, 1.f)
         [ BuildSubItem(ParentEntry, Group, Group.Items[i], i) ];
     }
-    if (Group.Items.IsEmpty())
+    if (Group.Items.Num() == 0)
     {
         ItemsBox->AddSlot().AutoHeight().Padding(4.f, 2.f)
         [
@@ -574,7 +574,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
                                                        FEntryPtr SubEntry, int32 SubIndex)
 {
     const bool bSubSelected = (SubEntry->Component == SelectedComponent.Get());
-    const bool bSubHasSubs  = !SubEntry->SubGroups.IsEmpty();
+    const bool bSubHasSubs  = (SubEntry->SubGroups.Num() > 0);
     const bool bSubExpanded = bSubHasSubs && !CollapsedComponents.Contains(SubEntry->Component);
     FArrayProperty* ArrayProp = Group.ArrayProp;
     TWeakObjectPtr<UObject> WeakParent = ParentEntry->Component;

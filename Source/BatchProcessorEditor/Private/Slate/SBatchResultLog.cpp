@@ -12,7 +12,7 @@
 #include "Widgets/Views/SListView.h"
 #include "Widgets/Views/STableRow.h"
 #include "Widgets/Layout/SBorder.h"
-#include "Styling/AppStyle.h"
+#include "BatchEditorStyleCompat.h"
 
 #define LOCTEXT_NAMESPACE "SBatchResultLog"
 

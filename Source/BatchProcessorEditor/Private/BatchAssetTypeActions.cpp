@@ -53,7 +53,7 @@ void FBatchAssetTypeActions::GetActions(const TArray<UObject*>& InObjects, FTool
             Assets.Add(A);
         }
     }
-    if (Assets.IsEmpty()) return;
+    if (Assets.Num() == 0) return;
 
     Section.AddMenuEntry(
         "BatchAsset_Run",
