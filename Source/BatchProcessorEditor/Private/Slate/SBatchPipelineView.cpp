@@ -171,7 +171,7 @@ void SBatchPipelineView::PopulateSubGroups(FPipelineEntry& Entry) const
             SubEntry->DisplayName = ItemDN.IsEmpty()
                 ? FText::FromString(Item->GetClass()->GetName())
                 : FText::FromString(ItemDN);
-                // 子条目不再递归扫描，保持单层展示
+                PopulateSubGroups(*SubEntry); // 递归扫描子条目自身的子组
             Group.Items.Add(SubEntry);
         }
         Entry.SubGroups.Add(MoveTemp(Group));
@@ -381,11 +381,10 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
                 return FReply::Handled();
             })
             [
-                // 使用 FAppStyle 内置树形箭头，避免 Unicode 字符渲染异常
                 SNew(SImage)
                 .Image(bExpanded
-                    ? FAppStyle::GetBrush("TreeArrow_Expanded")
-                    : FAppStyle::GetBrush("TreeArrow_Collapsed"))
+                    ? FCoreStyle::Get().GetBrush("TreeArrow_Expanded")
+                    : FCoreStyle::Get().GetBrush("TreeArrow_Collapsed"))
                 .ColorAndOpacity(FSlateColor::UseSubduedForeground())
             ]
         ]
@@ -554,12 +553,16 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
                                                        FEntryPtr SubEntry, int32 SubIndex)
 {
     const bool bSubSelected = (SubEntry->Component == SelectedComponent.Get());
+    const bool bSubHasSubs  = !SubEntry->SubGroups.IsEmpty();
+    const bool bSubExpanded = bSubHasSubs && !CollapsedComponents.Contains(SubEntry->Component);
     FArrayProperty* ArrayProp = Group.ArrayProp;
     TWeakObjectPtr<UObject> WeakParent = ParentEntry->Component;
     TWeakPtr<FPipelineEntry> WeakSub   = SubEntry;
     const int32 CapturedIdx = SubIndex;
 
-    return SNew(SBorder)
+    // 主行
+    TSharedRef<SWidget> Row =
+        SNew(SBorder)
         .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
         .BorderBackgroundColor(FSlateColor(bSubSelected
             ? FLinearColor(0.3f,0.3f,0.3f,0.4f) : FLinearColor::Transparent))
@@ -576,12 +579,41 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
         })
         [
             SNew(SHorizontalBox)
-            // 树形连接线缩进
+            // 树形缩进
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
             [
                 SNew(STextBlock).Text(FText::FromString(TEXT("  ├─")))
                 .Font(FCoreStyle::GetDefaultFontStyle("Regular", 7))
                 .ColorAndOpacity(FSlateColor(FLinearColor(0.4f,0.4f,0.4f)))
+            ]
+            // 展开/折叠（仅有子组时显示）
+            + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+            [
+                SNew(SButton)
+                .Visibility(bSubHasSubs ? EVisibility::Visible : EVisibility::Collapsed)
+                .ButtonStyle(FAppStyle::Get(), "NoBorder")
+                .ToolTipText(bSubExpanded ? LOCTEXT("SubCollapse","折叠") : LOCTEXT("SubExpand","展开"))
+                .OnClicked_Lambda([this, WeakSub]() -> FReply
+                {
+                    if (auto P = WeakSub.Pin())
+                    {
+                        if (CollapsedComponents.Contains(P->Component))
+                            CollapsedComponents.Remove(P->Component);
+                        else
+                            CollapsedComponents.Add(P->Component);
+                        if (ScannerCardsBox)   RebuildCards(*ScannerCardsBox,   ScannerEntries,   ScannerColor,   [this](int32 I){ OnScannerRemove(I); });
+                        if (FilterCardsBox)    RebuildCards(*FilterCardsBox,    FilterEntries,    FilterColor,    [this](int32 I){ OnFilterRemove(I); });
+                        if (ProcessorCardsBox) RebuildCards(*ProcessorCardsBox, ProcessorEntries, ProcessorColor, [this](int32 I){ OnProcessorRemove(I); });
+                    }
+                    return FReply::Handled();
+                })
+                [
+                    SNew(SImage)
+                    .Image(bSubExpanded
+                        ? FCoreStyle::Get().GetBrush("TreeArrow_Expanded")
+                        : FCoreStyle::Get().GetBrush("TreeArrow_Collapsed"))
+                    .ColorAndOpacity(FSlateColor::UseSubduedForeground())
+                ]
             ]
             // 状态 + 名称
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(2.f, 0.f)
@@ -594,13 +626,10 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
             + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center).Padding(2.f, 2.f)
             [
                 SNew(STextBlock).Text(SubEntry->DisplayName)
-                .Font(bSubSelected
-                    ? FAppStyle::GetFontStyle("SmallFont")
-                    : FCoreStyle::GetDefaultFontStyle("Regular", 8))
-                .ColorAndOpacity(FSlateColor(bSubSelected
-                    ? FLinearColor::White : FSlateColor::UseSubduedForeground()))
+                .Font(bSubSelected ? FAppStyle::GetFontStyle("SmallFont") : FCoreStyle::GetDefaultFontStyle("Regular", 8))
+                .ColorAndOpacity(FSlateColor(bSubSelected ? FLinearColor::White : FSlateColor::UseSubduedForeground()))
             ]
-            // 删除按钮
+            // 删除
             + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center).Padding(0.f, 0.f, 4.f, 0.f)
             [
                 SNew(SButton)
@@ -617,6 +646,19 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
                     .ColorAndOpacity(FSlateColor::UseSubduedForeground())
                 ]
             ]
+        ];
+
+    // 若有子组且已展开，递归渲染（利用 BuildSubGroups，左侧额外缩进区分层级）
+    if (!bSubHasSubs) return Row;
+
+    return SNew(SVerticalBox)
+        + SVerticalBox::Slot().AutoHeight() [ Row ]
+        + SVerticalBox::Slot().AutoHeight()
+        [
+            SNew(SBox)
+            .Visibility(bSubExpanded ? EVisibility::Visible : EVisibility::Collapsed)
+            .Padding(FMargin(20.f, 0.f, 0.f, 0.f)) // 缩进一级
+            [ BuildSubGroups(SubEntry) ]
         ];
 }
 
