@@ -1,210 +1,364 @@
-# BatchProcessor - 资产批处理工具
+# BatchProcessor — 资产批处理工具
 
 ## 目录
 
 - [插件概览](#插件概览)
-- [核心概念与架构](#核心概念与架构)
+- [两种配置方式](#两种配置方式)
+- [核心架构](#核心架构)
 - [执行流程](#执行流程)
 - [内置组件清单](#内置组件清单)
-- [快速开始](#快速开始)
-- [编辑器集成](#编辑器集成)
+- [快速开始：UBatchAsset（推荐）](#快速开始ubatchasset推荐)
+- [快速开始：蓝图方式（兼容旧流程）](#快速开始蓝图方式兼容旧流程)
+- [定制编辑器功能](#定制编辑器功能)
 - [扩展开发指南](#扩展开发指南)
 - [试运行（Dry-run）](#试运行dry-run)
+- [CI / 命令行集成](#ci--命令行集成)
 - [常见问题](#常见问题)
+
+---
 
 ## 插件概览
 
-BatchProcessor 是一个专为 **Unreal Engine 编辑器** 编写的资产批处理插件。通过组合扫描器（Scanner）、过滤器（Filter）、处理器（Processor）和条件（Condition），你可以在保留可视化体验的同时定制复杂的资产批处理规则。
+BatchProcessor 是专为 **Unreal Engine 编辑器** 设计的资产批处理插件。通过组合扫描器（Scanner）、过滤器（Filter）、处理器（Processor）和条件（Condition），可以批量修改资产默认值、统一资源引用、批量校验、批量生成辅助数据。
 
-插件采用 **配置 / 编排 / 服务 / 组件 / 内核** 五层分层架构：配置层（`UBatchBase` CDO 纯数据）→ 编排层（`UBatchRunner` 运行实例）→ 服务层（接口注入的进度反馈与资产保存）→ 组件层（四大可组合组件）→ 内核层（反射读写引擎）。运行态全部承载于 `UBatchRunner`，CDO 仅作不可变配置模板，支持安全的重入与回调保活。
+**五层分层架构（从上到下）**：
 
-> **目标场景**：批量修改资产默认值、统一资源引用、批量生成辅助数据、批量执行校验等。支持蓝图（Blueprint）、数据资产（DataAsset）、材质（Material）等任意 UObject 派生类型。
+```
+配置层   UBatchBase / UBatchAsset  — 不可变数据模板
+编排层   UBatchRunner              — 状态机 / StreamableManager / 全流程
+服务层   IBatchProgressReporter / IBatchAssetSaver  — 可注入的 UI 与 IO 实现
+组件层   Scanner / Filter / Processor / Condition   — 可组合业务逻辑
+内核层   UBatchFunctionLibrary     — 反射读写引擎
+```
 
-## 核心概念与架构
+> 支持蓝图（Blueprint）、数据资产（DataAsset）、材质（Material）等任意 `UObject` 派生类型。
+
+---
+
+## 两种配置方式
+
+| | UBatchAsset（推荐） | 蓝图子类（兼容旧流程） |
+|---|---|---|
+| 创建方式 | Content Browser → 右键 → **批处理任务** | 新建蓝图，父类选 `BatchBase` |
+| 编辑界面 | 专属多 Tab 定制编辑器 | 蓝图 Class Defaults |
+| 流水线可视化 | ✔ 增删 / 排序 / 校验图标 | ✗ 仅属性列表 |
+| 运行控制台 | ✔ 进度条 / 实时计数 / 试运行 | ✗ 仅蓝图工具栏按钮 |
+| 预览候选资产 | ✔ pre-load 扫描零副作用 | ✗ |
+| 结果日志 | ✔ TouchedAssets / 校验横幅 | ✗ 通知气泡 |
+| 蓝图事件扩展 | ✗ | ✔ Event Graph 可重写 |
+| 并存过渡 | ✔ `UBatchAsset` 继承 `UBatchBase`，运行层零侵入 | ✔ |
+
+两种方式**运行时完全一致**：均走 `UBatchRunner` 的五层架构。
+
+---
+
+## 核心架构
 
 ### 顶层对象
 
-- **`UBatchBase`**：批处理任务蓝图的父类，**仅作为配置模板**（CDO 纯数据）。持有 `Scanners / Filters / Processors` 内联实例配置与 `bDryRun` 开关。`Start()` 创建运行实例，自身不承载任何运行态。
-- **`UBatchRunner`**：单次批处理的**运行实例**（由 `UBatchBase::Start` 通过 `NewObject` 创建）。承载状态机（`EBatchStatus`）、异步加载器（`FStreamableManager`）、上下文（`UBatchContext`），编排 `OnStart → OnProcessing → OnAssetLoaded → ProcessAssets → OnFinish` 全流程。
-- **`UBatchContext`**：在一次批处理中共享的上下文，保存待处理资产集合、异步加载状态、统计信息、ScratchPad 映射以及**批处理结果**（`FBatchResult`）。
-- **`FBatchTarget`**：统一抽象「被批处理的对象」。可能是 `UBlueprint`（变量根 = `GeneratedClass` 的 CDO），也可能是 DataAsset / Material 等普通资产（变量根 = 资产自身）。组件链统一面向 `FBatchTarget`，不再硬编码 `UBlueprint`。
-- **`FBatchResult`**：批处理结果聚合，记录已处理数 / 修改数 / 跳过数 / 失败数 / 被处理资产路径列表，供统计器与进度反馈在结束时读取。
-- **`UBatchScratchPad` / `IBatchScratchPadInterface`**：供处理器跨资产缓存临时状态（按 UID 在 `UBatchContext` 中懒创建并缓存）。
+- **`UBatchBase`**：配置模板基类，持有 `Scanners / Filters / Processors` 内联实例与 `bDryRun` 开关。`Start()` 创建运行实例，自身不承载任何运行态。
+- **`UBatchAsset`**：`UBatchBase` 的具体子类，以 `.uasset` 文件存储配置，双击打开定制编辑器。比蓝图子类更轻量、更便于版本管理。
+- **`UBatchRunner`**：单次批处理的运行实例（`NewObject` 创建）。承载状态机、异步加载器、上下文，编排全流程。
+- **`UBatchContext`**：共享上下文，保存待处理资产集合、统计信息、ScratchPad 映射与 `FBatchResult`。
+- **`FBatchTarget`**：统一批处理对象抽象。蓝图取 `GeneratedClass` CDO，其它资产取对象本身。组件链统一面向 `FBatchTarget`。
+- **`FBatchResult`**：结果聚合，记录 `ProcessedCount / ModifiedCount / SkippedCount / FailedCount / TouchedAssets`。
 
 ### 服务接口（依赖注入）
 
-UI 与 IO 通过纯 C++ 抽象接口解耦，可在编辑器与 CI 间切换：
+| 接口 | 编辑器默认实现 | CI / 命令行 | 编辑器控制台 |
+|---|---|---|---|
+| `IBatchProgressReporter` | `FSlateBatchProgressReporter`（通知气泡） | `FNullBatchProgressReporter` | `FEditorBatchProgressReporter` |
+| `IBatchAssetSaver` | `FDefaultBatchAssetSaver`（标脏 + 落盘） | 自定义实现 | `FDryRunBatchAssetSaver`（试运行） |
 
-- **`IBatchProgressReporter`**：进度反馈接口（`OnBegin / OnProgress / OnFinished`）。
-  - `FSlateBatchProgressReporter`：编辑器 Slate 通知（进度条）。
-  - `FNullBatchProgressReporter`：CI / 命令行空实现。
-- **`IBatchAssetSaver`**：资产保存接口（`SaveAsset` → `EBatchSaveResult`）。
-  - `FDefaultBatchAssetSaver`：标脏 → 关闭编辑器 → `SavePackage` 落盘。
-  - `FDryRunBatchAssetSaver`：试运行，仅记录不落盘。
+通过 `UBatchRunner::SetProgressReporter / SetAssetSaver` 注入，或使用 `UBatchBase::StartWithReporter(Reporter, bForceDryRun)` 一步完成。
 
-未注入时 `UBatchRunner::Run` 默认使用 Slate + Default 实现（保持编辑器交互行为）。
-
-### 模块化组件
-
-所有组件均为 `UCLASS(Abstract, EditInlineNew)`，在 `UBatchBase` 中以 `Instanced TArray` 内联实例化配置。
-
-- **`UScannerBase`**
-  - `ScannerAssets` → `OnScannerAssets` 收集 `FAssetData`，随后 `OnFilter` 根据正则表达式与名称类型（`EFilter_NameType`）做初筛。
-- **`UFilterBase`**
-  - `ShouldKeep` → `OnShouldKeep`，返回 `true` 表示**保留**该资产，`false` 表示排除。基类提供 `bInvert` 翻转选项。
-  - `UBatchFunctionLibrary::ShouldKeepAll` 聚合所有过滤器：全部返回 `true` 才保留。
-- **`UProcessorBase`**
-  - `Start / Processing / Finish` 对应生命周期，`OnProcessing` 中实现逻辑。返回 `true` 表示资产被修改以触发保存。
-  - 可通过 `GetSubProcessors` 组合子处理器，或使用 `UBatchFunctionLibrary::DoProcessors` 顺序执行数组。
-  - 实现 `IBatchScratchPadInterface`，可申请按 UID 缓存的便笺簿。
-- **`UConditionBase`**
-  - `CheckCondition` 决定条件是否通过，带 `bNegation`（取反）选项。常和 `UProcessor_Condition` 配合控制流程。
-
-### 数据结构
-
-- **`FBatchTarget`**：封装被处理资产，提供 `GetAsset / GetBlueprint / GetGeneratedClass / GetVariableObject / GetSaveObject / MakeVariable / GetName / GetPathName` 等访问器。
-- **`FBatchVariable`**：封装任意对象或属性的地址 / 结构体，传递给处理器 / 条件用于读写。
-- **`FBatchProperty`**：描述某个 `FProperty` 的内存地址，通常由 `UBatchFunctionLibrary::FindProperty` 返回。
-- **`FBatchResult`**：批处理结果聚合（`bModified / ProcessedCount / ModifiedCount / SkippedCount / FailedCount / TouchedAssets`）。
+---
 
 ## 执行流程
 
 ```mermaid
 graph TD
-    A[点击 执行批处理] --> B{UBatchBase::Start}
-    B --> C[NewObject UBatchRunner]
-    C --> D[UBatchRunner::Run - 注入默认 Reporter/Saver]
-    D --> E[OnStart: 扫描资产 + Context.Initialized + Processors.Start]
-    E --> F{异步分批加载 - MAX_LOAD_COUNT=5}
-    F -->|加载完成| G[OnAssetLoaded: 构造 FBatchTarget]
-    G --> H[ProcessAssets]
-    H --> I{ShouldKeepAll 过滤器}
-    I -->|保留| J[MakeVariable + DoProcessors]
-    J --> K{有修改?}
-    K -->|是| L[AssetSaver.SaveAsset 落盘]
-    K -->|否| M[跳过保存]
-    I -->|排除| N[Result.AddSkipped]
-    L --> O{全部完成?}
-    M --> O
-    N --> O
-    O -->|否| F
-    O -->|是| P[OnFinish: Processors.Finish + Reporter.OnFinished 带 Result.GetSummary]
+    A[触发运行] --> B{UBatchBase::Start}
+    B --> C[NewObject UBatchRunner + 注入 Reporter/Saver]
+    C --> D[OnStart: Scanner.ScannerAssets → Context.Initialized → Processors.Start]
+    D --> E{异步分批加载 BatchSize=5}
+    E -->|已加载| F[OnAssetLoaded → FBatchTarget]
+    F --> G{ShouldKeepAll 过滤器}
+    G -->|保留| H[MakeVariable → DoProcessors]
+    H --> I{有修改?}
+    I -->|是| J[AssetSaver.SaveAsset]
+    I -->|否| K[skip]
+    G -->|排除| L[Result.AddSkipped]
+    J --> M{全部完成?}
+    K --> M
+    L --> M
+    M -->|否| E
+    M -->|是| N[OnFinish → Processors.Finish → Reporter.OnFinished + Result.GetSummary]
 ```
 
-- 进度通过注入的 `IBatchProgressReporter` 实时展示（默认 Slate 通知）。
-- 资产保存通过注入的 `IBatchAssetSaver` 完成（默认标脏 + 关闭编辑器 + `SavePackage`）。
-- 结束消息带结果摘要：`"批处理完成: 处理 N | 修改 M | 跳过 K | 失败 L"`。
+- 过滤分两层：**pre-load**（Scanner，基于 `FAssetData`）和 **post-load**（FilterBase，基于已加载 `FBatchTarget`）。
+- 停止请求（`RequestStop`）在批次边界生效，`FinalizeProcessors` 保证处理器 `Finish` 生命周期对称。
+
+---
 
 ## 内置组件清单
 
 | 类型 | 类名 | 功能要点 |
-| --- | --- | --- |
-| Scanner | `UScanner_Directory` | 扫描指定目录，支持递归，按资产类（`TSubclassOf<UObject>`）过滤 |
-| Filter | `UFilter_GeneratedClass` | 根据生成类类型过滤，支持 `bInvert` 取反 |
+|---|---|---|
+| Scanner | `UScanner_Directory` | 扫描目录（支持递归），按资产类过滤；`ValidateConfig` 检查路径配置 |
+| Filter | `UFilter_GeneratedClass` | 按生成类类型过滤，支持 `bInvert` 取反；未配置/未加载时**安全排除全部资产** |
 | Processor | `UProcessor_Condition` | 条件分支执行（Conditions + Processors） |
-| Processor | `UProcessor_Iterators` | 对数组 / 集合 / 映射执行迭代 |
-| Processor | `UProcessor_Usage` | 资产统计器，从 `FBatchResult` 读取并弹窗汇总 |
-| Processor | `UProcessorBlueprintBase` | 蓝图可继承的处理器基类（BP 事件转发） |
+| Processor | `UProcessor_Iterators` | 对数组 / 集合 / 映射迭代 |
+| Processor | `UProcessor_Usage` | 结束时弹窗汇总 `FBatchResult` |
+| Processor | `UProcessorBlueprintBase` | 蓝图可继承的处理器基类 |
 | ProcessorProperty | `UProcessorProperty_Bool/Int/Float/String/Material` | 修改对应类型属性 |
 | ProcessorProperty | `UProcessorProperty_Object` | 修改 `UObject` 硬引用属性 |
 | ProcessorProperty | `UProcessorProperty_SoftObject` | 修改 `FSoftObjectPath` 软引用属性 |
-| Condition | `UConditionProperty_Bool/Class/Int/Float/String` | 针对属性判定 |
-| Condition | `UConditionPropertyContainer_Bool/Int/Float/String` | 针对容器（Array/Set/Map）属性判定 |
+| Condition | `UConditionProperty_Bool/Class/Int/Float/String` | 属性条件判定；Class 未配置时**安全不匹配** |
+| Condition | `UConditionPropertyContainer_Bool/Int/Float/String` | 容器属性条件（含多重集语义） |
 
-## 快速开始
-
-### 1. 创建批处理蓝图
-
-1. 在内容浏览器新建蓝图类，父类选 `BatchBase`。
-2. 进入 **Class Defaults**，在 `Scanners / Filters / Processors` 中添加需要的实例并配置参数。
-
-### 2. 配置示例
-
-```text
-Scanners:
-  - Scanner_Directory: Directory=/Game/MyAssets, AssetClass=BP_BaseActor, bRecursivePaths=true
-Filters:
-  - Filter_GeneratedClass: ComparisonOperator=Child, GeneratedClass=BP_BaseActor_C
-Processors:
-  - Processor_Condition
-      Conditions: [ConditionProperty_Bool(ComparisonOperator=Equal, Value=true)]
-      bMustPassAllCondition: true
-      Processors: [ProcessorProperty_Bool(PropertyName="bReplicates", Value=true)]
-```
-
-### 3. 运行与监控
-
-1. 保持批处理蓝图编辑器打开。
-2. 工具栏中点击 **执行批处理**（Play 图标）。
-3. 在右下角通知面板查看进度与当前资产。
-4. 可随时点击 **终止批处理**（Stop 图标）停止任务。
-5. 结束时通知显示结果摘要（处理 / 修改 / 跳过 / 失败）。
-
-## 编辑器集成
-
-`FBatchProcessorModule` 在启动时注册蓝图编辑器工具栏扩展：
-
-- `ExecuteBatchProcessing`：调用 `UBatchBase::Start()`。
-- `TerminationBatchProcessing`：调用 `UBatchBase::Stop()`。
-
-按钮仅在当前蓝图的 `GeneratedClass` 继承自 `UBatchBase` 时显示。
-
-## 扩展开发指南
-
-### 过滤时机：pre-load vs post-load
-
-| 阶段 | 写在哪里 | 可用数据 | 典型用途 |
-|---|---|---|---|
-| **pre-load**（加载前） | `UScannerBase::OnScannerAssets` 或调用 `FilterAssetsByName` | `FAssetData`（路径、类名、标签，无资产内容） | 按目录、资产类、名称正则筛选，尽早剪枝减少加载量 |
-| **post-load**（加载后） | `UFilterBase::OnShouldKeep` | 已加载的 `FBatchTarget`（可读取 CDO 属性、材质参数等） | 按资产内容条件精细过滤，如属性值、引用关系 |
-
-> **原则**：能在 pre-load 阶段判断的条件尽量写在 Scanner（`FilterAssetsByName` 工具方法可复用），减少不必要的异步加载。运行时内容条件才放 Filter。
-
-1. **自定义扫描器**
-   - 继承 `UScannerBase`，重写 `OnScannerAssets` 收集资产，可复用 `OnFilter` 的正则过滤。
-   - 若需在自定义 Scanner 内做额外名称过滤，可直接调用静态方法 `UScannerBase::FilterAssetsByName(Assets, NameType, Regex)`。
-2. **自定义过滤器**
-   - 继承 `UFilterBase`，重写 `OnShouldKeep` 返回是否**保留**该资产。基类已处理 `bInvert` 翻转，子类只需返回「是否匹配保留条件」。
-   - 签名：`virtual bool OnShouldKeep(const FBatchTarget& Target) const;`
-3. **自定义处理器**
-   - 继承 `UProcessorBase`，重写 `OnProcessing` 并使用 `UBatchFunctionLibrary::FindProperty / SetProperty` 操作属性。
-   - 签名：`virtual bool OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const;`
-   - 如需跨资产共享数据，实现 `IBatchScratchPadInterface` 并在 `Context->GetScratchPad<T>(this)` 中取得自定义 ScratchPad。
-4. **条件扩展**
-   - 继承 `UConditionBase`，重写 `OnCheckCondition` 封装布尔判断。基类已处理 `bNegation` 取反。
-   - 签名：`virtual bool OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable);`
-5. **进度反馈 / 保存策略自定义**
-   - 实现 `IBatchProgressReporter` 或 `IBatchAssetSaver`，通过 `UBatchRunner::SetProgressReporter / SetAssetSaver` 注入。
-
-建议在 C++ 中实现核心逻辑，蓝图中组合参数，以保持性能与可视化并存。
-
-## 试运行（Dry-run）
-
-`UBatchBase` 提供 `bDryRun`（DisplayName「试运行(不保存)」）选项。启用后：
-
-- `UBatchBase::Start` 注入 `FDryRunBatchAssetSaver`，处理器照常执行并返回修改结果，但**不会标脏、不会关闭编辑器、不会落盘**。
-- 仅在日志中记录「Would Save [资产名]」，用于预检批处理规则的影响范围。
-- `FBatchResult` 仍正常统计 ProcessedCount / ModifiedCount，可用于评估。
-
-## 常见问题
-
-- **如何只处理部分资产？**
-  - 使用 `UScanner_Directory` 指定路径与 `AssetClass`，并在 `RegularExpressions` 中写入正则表达式过滤资产 / 包名。
-- **资产未保存怎么办？**
-  - 检查 `UProcessorBase::OnProcessing` 是否返回 `true`，只有返回 `true` 时 `UBatchRunner` 才会调用 `AssetSaver->SaveAsset`。
-  - 若启用了 `bDryRun`，资产不会落盘（仅记录），关闭该选项即可。
-- **过滤器语义是怎样的？**
-  - `ShouldKeep` 返回 `true` = **保留**资产，`false` = 排除。`OnShouldKeep` 返回「是否匹配保留条件」，基类用 `bInvert` 翻转。所有过滤器的 `ShouldKeep` 都返回 `true` 时资产才保留。
-  - **安全默认**：`UFilter_GeneratedClass` 若 `GeneratedClass` 未配置或尚未加载，会无论 `bInvert` 取何值都**排除全部资产**并输出 Warning，防止漏配静默放行。`UConditionProperty_Class` 同理。
-- **支持哪些资产类型？**
-  - 任意 `UObject` 派生类型。蓝图变量根取 `GeneratedClass` 的 CDO；其它资产（DataAsset / Material 等）变量根取资产自身。
-- **容器条件 Include / Included / Equal 的语义是什么？**
-  - `Include`（包含目标）：配置的 `Values` 集合（含重复）是属性容器的**子多重集**。即 `Values=[1,1]` 要求容器中至少有两个 `1`。
-  - `Included`（被目标包含）：属性容器是配置的 `Values` 集合的**子多重集**。
-  - `Equal`（等于）：两者为相同多重集（元素与数量完全一致）。由于 `TSet / TMap` 迭代顺序不确定，比较前会对双方排序，结果稳定。
-- **如何在 CI / 命令行中运行？**
-  - 注入 `FNullBatchProgressReporter`（无 UI）与自定义 `IBatchAssetSaver`（如接入源码管理 checkout），即可在无编辑器交互的环境下运行。
+**组件 ValidateConfig**：所有组件基类暴露可选虚函数 `virtual void ValidateConfig(TArray<FText>& OutErrors) const {}`，编辑器在流水线视图与结果面板自动聚合调用并展示警告横幅，不影响运行路径。
 
 ---
 
-如需了解更多 API 细节，请参考 `Source/BatchProcessor/Public` 目录中的头文件。
+## 快速开始：UBatchAsset（推荐）
+
+### 1. 新建批处理任务
+
+Content Browser → 右键 → **杂项 → 批处理任务**（图标为蓝色齿轮），填写名称后双击打开定制编辑器。
+
+### 2. 配置流水线
+
+在左侧 **流水线** 面板：
+
+1. 点击「扫描器」区域的 **＋** 下拉菜单，选择 `Scanner_Directory`，配置目录与资产类。
+2. 点击「过滤器」区域的 **＋**，选择 `Filter_GeneratedClass`，配置目标父类。
+3. 点击「处理器」区域的 **＋**，选择目标处理器并在中间 **属性** 面板配置参数。
+
+配置有误时，流水线行会显示 ⚠ 图标，**结果** Tab 顶部会出现黄色校验横幅。
+
+### 3. 预览候选资产
+
+点击工具栏 **预览资产**（🔍），或切换到 **预览** Tab 后点击「扫描预览」。  
+这只执行 pre-load 扫描链路，**不加载资产内容**，零副作用。
+
+### 4. 运行批处理
+
+| 操作 | 效果 |
+|---|---|
+| **▶ 运行** | 正式执行，修改结果落盘 |
+| **◎ 试运行** | 执行全流程，不落盘；结果显示在 **结果** Tab |
+| **■ 停止** | 在当前批次边界停止 |
+
+**控制台** Tab 实时显示进度条、当前资产路径与 `Processed / Modified / Skipped / Failed` 计数。  
+**结果** Tab 在运行结束后显示完整的 `TouchedAssets` 列表与最终摘要。
+
+---
+
+## 快速开始：蓝图方式（兼容旧流程）
+
+1. Content Browser → 新建蓝图类，父类选 **BatchBase**。
+2. 打开蓝图，进入 **Class Defaults**，在 `Scanners / Filters / Processors` 中添加并配置组件实例。
+3. 保持蓝图编辑器打开，工具栏点击 **执行批处理**（Play 图标）。
+4. 右下角通知面板查看进度；点击 **终止批处理**（Stop 图标）可随时停止。
+
+---
+
+## 定制编辑器功能
+
+`BatchProcessorEditor` 模块为 `UBatchAsset` 资产提供多 Tab 定制编辑器（`FBatchAssetEditorToolkit`）：
+
+### Tab 说明
+
+| Tab | 说明 |
+|---|---|
+| **流水线** | 以三个分段列表（Scanner / Filter / Processor）展示组件。下拉 ＋ 添加、✕ 删除，全程支持 Ctrl+Z 撤销。选中行后右侧属性面板同步更新。 |
+| **属性** | 标准 `IDetailsView`，展示选中组件或资产整体的属性，直接编辑可立即生效。 |
+| **控制台** | 进度条 + 状态标签 + 实时计数器，以 ~10 Hz 轮询刷新（`RegisterActiveTimer`）。运行结束时触发结果面板刷新。 |
+| **预览** | 调用 `UBatchRunner::PreviewMatchedAssets`，列出所有 Scanner 候选资产（仅含资产名、类型、路径，不加载内容）。双击在 Content Browser 中同步选中。 |
+| **结果** | 顶部展示所有组件 `ValidateConfig` 汇总的校验警告横幅；下方展示上次批处理的摘要与 TouchedAssets 滚动列表。 |
+| **差异** | P3 占位（计划展示 Dry-run 属性改变前后对比）。 |
+
+### 工具栏按钮
+
+```
+[ ▶ 运行 ]  [ ◎ 试运行 ]  [ ■ 停止 ]  |  [ 🔍 预览资产 ]
+```
+
+### 数据流
+
+```
+工具栏「运行」
+  → Asset.StartWithReporter(FEditorBatchProgressReporter)
+    → UBatchRunner（复用五层架构）
+      → FEditorBatchProgressReporter.OnProgress → SBatchConsole 刷新
+      → UBatchRunner.OnFinished → SBatchConsole 检测边界 → SBatchResultLog.SetResult
+```
+
+---
+
+## 扩展开发指南
+
+### pre-load vs post-load 过滤时机
+
+| 阶段 | 写在哪里 | 可用数据 | 典型用途 |
+|---|---|---|---|
+| **pre-load** | `UScannerBase::OnScannerAssets` 或 `FilterAssetsByName` | `FAssetData`（无资产内容） | 按目录、类名、名称正则筛选，尽早剪枝 |
+| **post-load** | `UFilterBase::OnShouldKeep` | 已加载的 `FBatchTarget` | 按属性值、引用关系精细过滤 |
+
+能在 pre-load 阶段判断的条件尽量写在 Scanner，减少异步加载量。
+
+### 新建组件（C++）
+
+```cpp
+// 1. 自定义 Scanner
+UCLASS(meta=(DisplayName="我的扫描器"))
+class UMyScanner : public UScannerBase
+{
+    GENERATED_BODY()
+    virtual void OnScannerAssets(TSet<FAssetData>& Assets) const override;
+    virtual void ValidateConfig(TArray<FText>& OutErrors) const override;  // 可选
+};
+
+// 2. 自定义 Filter
+UCLASS(meta=(DisplayName="我的过滤器"))
+class UMyFilter : public UFilterBase
+{
+    GENERATED_BODY()
+    virtual bool OnShouldKeep(const FBatchTarget& Target) const override;
+    // 返回 true = 保留；OnShouldKeep 只表达"是否匹配保留条件"，bInvert 由基类处理
+};
+
+// 3. 自定义 Processor
+UCLASS(meta=(DisplayName="我的处理器"))
+class UMyProcessor : public UProcessorBase
+{
+    GENERATED_BODY()
+    virtual bool OnProcessing(const FBatchTarget& Target,
+                              UBatchContext* Context,
+                              const FBatchVariable& Variable) const override;
+    // 返回 true 表示资产被修改，触发保存
+};
+
+// 4. 自定义 Condition
+UCLASS(meta=(DisplayName="我的条件"))
+class UMyCondition : public UConditionBase
+{
+    GENERATED_BODY()
+    virtual bool OnCheckCondition(const FBatchTarget& Target,
+                                  UBatchContext* Context,
+                                  const FBatchVariable& Variable) override;
+    // bNegation 取反由基类处理
+};
+```
+
+### 自定义进度 / 保存策略
+
+```cpp
+// 自定义进度 Reporter（用于 CI 等场景）
+class FMyReporter : public IBatchProgressReporter
+{
+public:
+    virtual void OnBegin() override { /* 初始化 */ }
+    virtual void OnProgress(const FString& Message) override { /* 上报日志 */ }
+    virtual void OnFinished(bool bSuccess, const FString& Message) override { /* 记录结果 */ }
+};
+
+// 注入运行
+Asset->StartWithReporter(MakeShared<FMyReporter>());
+
+// 或直接用 Runner 注入（蓝图任务兼容路径）
+Runner->SetProgressReporter(MakeShared<FMyReporter>());
+Runner->SetAssetSaver(MakeShared<FDryRunBatchAssetSaver>());
+Runner->Run(Config);
+```
+
+### 跨资产共享数据（ScratchPad）
+
+```cpp
+// 声明 ScratchPad（派生自 UBatchScratchPad）
+UCLASS()
+class UMyPad : public UBatchScratchPad
+{
+    GENERATED_BODY()
+public:
+    int32 TotalCount = 0;
+};
+
+// 在 OnProcessing 中读写
+virtual bool OnProcessing(...) const override
+{
+    UMyPad* Pad = Context->GetScratchPad<UMyPad>(this);
+    ++Pad->TotalCount;
+    return false;
+}
+```
+
+### ValidateConfig 实现（为编辑器校验横幅提供反馈）
+
+```cpp
+virtual void ValidateConfig(TArray<FText>& OutErrors) const override
+{
+    if (TargetClass.IsNull())
+    {
+        OutErrors.Add(FText::FromString(TEXT("TargetClass 未配置，运行时将无效")));
+    }
+}
+```
+
+---
+
+## 试运行（Dry-run）
+
+两种触发方式：
+
+1. **编辑器工具栏**：点击 **◎ 试运行**，强制覆盖 `bDryRun` 设置。
+2. **属性开关**：在流水线详情面板或 Class Defaults 中启用 `bDryRun(不保存)`，之后点「运行」也不落盘。
+
+试运行时注入 `FDryRunBatchAssetSaver`：处理器照常执行并返回修改结果，但**不标脏、不关闭编辑器、不 SavePackage**，仅记录「Would Save [资产名]」。`FBatchResult` 仍正常统计，可在 **结果** Tab 查看影响范围。
+
+---
+
+## CI / 命令行集成
+
+```cpp
+// CI 场景：无 UI + 自定义保存策略
+TObjectPtr<UBatchAsset> Asset = LoadObject<UBatchAsset>(nullptr, TEXT("/Game/Batch/MyBatch"));
+if (Asset)
+{
+    UBatchRunner* Runner = NewObject<UBatchRunner>();
+    Runner->SetProgressReporter(MakeShared<FNullBatchProgressReporter>());
+    Runner->SetAssetSaver(MakeShared<FMySourceControlSaver>());  // 自定义：先 checkout 再保存
+    Runner->Run(Asset);
+}
+```
+
+也可直接使用 `UBatchBase::StartWithReporter(Reporter)` 简化调用，Runner 生命周期由 `UBatchBase` 管理。
+
+---
+
+## 常见问题
+
+**Q：如何只处理部分资产？**
+使用 `Scanner_Directory` 指定路径，`RegularExpressions` 写正则表达式；或叠加 `Filter_GeneratedClass` 限定类型。
+
+**Q：资产未保存怎么办？**
+检查 `OnProcessing` 是否返回 `true`；确认未启用 `bDryRun`；查看 **结果** Tab 或通知气泡中的失败计数。
+
+**Q：过滤器的安全默认行为是什么？**
+`UFilter_GeneratedClass` / `UConditionProperty_Class` 若目标类**未配置**或**尚未加载**，无论 `bInvert` 取何值，一律**排除全部资产**并输出 Warning，防止漏配静默放行。流水线视图的 ⚠ 图标与结果 Tab 校验横幅会提前提示。
+
+**Q：容器条件 Include / Included / Equal 的语义？**
+- `Include`：配置的 `Values`（含重复）是属性容器的**子多重集**，即 `Values=[1,1]` 要求容器中至少有两个 `1`。
+- `Included`：属性容器是配置的 `Values` 的**子多重集**。
+- `Equal`：两者为相同多重集（元素与数量完全一致）。由于 `TSet / TMap` 迭代顺序不确定，比较前会对双方排序保证稳定性。
+
+**Q：UBatchAsset 和蓝图批处理任务如何并存过渡？**
+`UBatchAsset` 继承 `UBatchBase`，运行时 `UBatchRunner::Run(UBatchBase*)` 两者均可传入，现有蓝图任务完全不受影响。新任务建议用 `UBatchAsset`，旧蓝图任务可按需迁移（直接在编辑器内复制 Scanners / Filters / Processors 配置即可）。
+
+**Q：如何在编辑器中给批处理资产加描述/说明？**
+`UBatchAsset` 提供 `Description`（多行文本）属性，可在定制编辑器的属性面板直接填写，不影响运行逻辑。
+
+---
+
+更多 API 细节请参考 `Source/BatchProcessor/Public` 与 `Source/BatchProcessorEditor/Public` 目录中的头文件。
