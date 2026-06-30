@@ -4,6 +4,7 @@
 #include "ConditionPropertyContainer_Float.h"
 
 #include "BatchDefine.h"
+#include "Utils/BatchVersionCompat.h"
 
 bool UConditionPropertyContainer_Float::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
@@ -108,7 +109,7 @@ bool UConditionPropertyContainer_Float::CheckFloatArray(const TArray<double>& Fl
 				{
 					if (FMath::Abs(Remaining[j] - Value) < Tolerance)
 					{
-						Remaining.RemoveAt(j, 1, EAllowShrinking::No);
+						Remaining.RemoveAt(j, 1, BP_ALLOW_SHRINKING_NO);
 						bFound = true;
 						break;
 					}
@@ -133,7 +134,7 @@ bool UConditionPropertyContainer_Float::CheckFloatArray(const TArray<double>& Fl
 				{
 					if (FMath::Abs(RemainingValues[j] - ArrayValue) < Tolerance)
 					{
-						RemainingValues.RemoveAt(j, 1, EAllowShrinking::No);
+						RemainingValues.RemoveAt(j, 1, BP_ALLOW_SHRINKING_NO);
 						bFound = true;
 						break;
 					}

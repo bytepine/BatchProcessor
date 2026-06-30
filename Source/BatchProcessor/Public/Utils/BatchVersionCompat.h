@@ -78,8 +78,16 @@
 
 // ── 容器 / 算法 ───────────────────────────────────────────────────────────────
 
-// UE5.5：TArray::Pop(bool bAllowShrinking) → Pop(EAllowShrinking)
-#define BP_UE_HAS_ALLOW_SHRINKING_ENUM  BP_UE_AT_LEAST(5, 5)
+// UE5.4：EAllowShrinking 枚举引入，TArray::RemoveAt/Pop 等接受 EAllowShrinking 替代 bool
+#define BP_UE_HAS_ALLOW_SHRINKING_ENUM  BP_UE_AT_LEAST(5, 4)
+
+#if BP_UE_HAS_ALLOW_SHRINKING_ENUM
+    #define BP_ALLOW_SHRINKING_NO   EAllowShrinking::No
+    #define BP_ALLOW_SHRINKING_YES  EAllowShrinking::Yes
+#else
+    #define BP_ALLOW_SHRINKING_NO   false
+    #define BP_ALLOW_SHRINKING_YES  true
+#endif
 
 // ── 材质相关（BatchProcessor 材质修改器） ─────────────────────────────────────
 

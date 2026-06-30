@@ -4,6 +4,7 @@
 #include "ConditionPropertyContainer_Int.h"
 
 #include "BatchDefine.h"
+#include "Utils/BatchVersionCompat.h"
 
 bool UConditionPropertyContainer_Int::OnCheckCondition(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable)
 {
@@ -131,7 +132,7 @@ bool UConditionPropertyContainer_Int::CheckIntArray(const TArray<int64>& IntArra
 					bResult = false;
 					break;
 				}
-				Remaining.RemoveAt(Idx, 1, EAllowShrinking::No);
+				Remaining.RemoveAt(Idx, 1, BP_ALLOW_SHRINKING_NO);
 			}
 		}
 		break;
@@ -148,7 +149,7 @@ bool UConditionPropertyContainer_Int::CheckIntArray(const TArray<int64>& IntArra
 					bResult = false;
 					break;
 				}
-				RemainingValues.RemoveAt(Idx, 1, EAllowShrinking::No);
+				RemainingValues.RemoveAt(Idx, 1, BP_ALLOW_SHRINKING_NO);
 			}
 		}
 		break;

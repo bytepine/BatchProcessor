@@ -26,8 +26,15 @@ public class BatchProcessorEditor : ModuleRules
             "EditorStyle",
             "PropertyEditor",
             "ToolMenus",
-            "AssetDefinition",
             "ContentBrowser",
         });
+
+        // AssetDefinition module was introduced in UE 5.2
+        bool bHasAssetDefinition = Target.Version.MajorVersion > 5 ||
+                                   (Target.Version.MajorVersion == 5 && Target.Version.MinorVersion >= 2);
+        if (bHasAssetDefinition)
+        {
+            PrivateDependencyModuleNames.Add("AssetDefinition");
+        }
     }
 }
