@@ -39,7 +39,7 @@ void SBatchConsole::Construct(const FArguments& InArgs)
             [
                 SNew(STextBlock)
                 .Text(LOCTEXT("StatusLabel", "状态："))
-                .Font(FAppStyle::GetFontStyle("BoldFont"))
+                .Font(FAppStyle::Get().GetFontStyle("BoldFont"))
             ]
             + SHorizontalBox::Slot()
             .AutoWidth()
@@ -48,7 +48,7 @@ void SBatchConsole::Construct(const FArguments& InArgs)
                 SNew(STextBlock)
                 .Text(this, &SBatchConsole::GetStatusText)
                 .ColorAndOpacity(this, &SBatchConsole::GetStatusColor)
-                .Font(FAppStyle::GetFontStyle("BoldFont"))
+                .Font(FAppStyle::Get().GetFontStyle("BoldFont"))
             ]
         ]
 

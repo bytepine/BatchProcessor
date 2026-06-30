@@ -54,6 +54,10 @@
 // UE5.1：FAssetData::ObjectPath → GetSoftObjectPath()（返回 FSoftObjectPath）
 #define BP_UE_HAS_ASSET_SOFT_OBJECT_PATH  BP_UE_AT_LEAST(5, 1)
 
+// UE5.1：FAssetData::AssetClass(FName) → AssetClassPath(FTopLevelAssetPath)；
+//        FAssetData::ObjectPath.ToString() → GetObjectPathString()
+#define BP_UE_HAS_ASSET_CLASS_PATH_FIELD  BP_UE_AT_LEAST(5, 1)
+
 // UE5.1：FProperty::ImportText → ImportText_Direct；ExportTextItem → ExportTextItem_Direct
 #define BP_UE_HAS_IMPORT_TEXT_DIRECT  BP_UE_AT_LEAST(5, 1)
 #define BP_UE_HAS_EXPORT_TEXT_DIRECT  BP_UE_AT_LEAST(5, 1)

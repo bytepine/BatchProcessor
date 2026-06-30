@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Processor/ProcessorPropertyBase.h"
+#include "Utils/BatchVersionCompat.h"
 #include "ProcessorProperty_Object.generated.h"
 
 /**
@@ -22,5 +23,9 @@ protected:
 	virtual bool OnProcessing(const FBatchTarget& Target, UBatchContext* Context, const FBatchVariable& Variable) const override;
 
 	UPROPERTY(EditDefaultsOnly, Category="属性修改", DisplayName="目标对象")
+#if BP_UE_HAS_OBJECT_PTR
 	TObjectPtr<UObject> Value;
+#else
+	UObject* Value;
+#endif
 };

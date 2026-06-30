@@ -3,6 +3,7 @@
 #include "Slate/SBatchPreviewList.h"
 #include "BatchAsset.h"
 #include "BatchRunner.h"
+#include "Utils/BatchVersionCompat.h"
 
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SButton.h"
@@ -88,8 +89,13 @@ FReply SBatchPreviewList::OnPreviewClicked()
 TSharedRef<ITableRow> SBatchPreviewList::GenerateRow(
     FAssetDataPtr Item, const TSharedRef<STableViewBase>& OwnerTable)
 {
-    const FString ClassName = Item->AssetClassPath.GetAssetName().ToString();
+#if BP_UE_HAS_ASSET_CLASS_PATH_FIELD
+    const FString ClassName  = Item->AssetClassPath.GetAssetName().ToString();
     const FString ObjectPath = Item->GetObjectPathString();
+#else
+    const FString ClassName  = Item->AssetClass.ToString();
+    const FString ObjectPath = Item->ObjectPath.ToString();
+#endif
 
     return SNew(STableRow<FAssetDataPtr>, OwnerTable)
         .Padding(FMargin(4.f, 2.f))

@@ -197,14 +197,14 @@ TSharedRef<SWidget> SBatchPipelineView::BuildLane(
     OutCardsBox = CardsBox;
 
     return SNew(SBorder)
-        .BorderImage(FAppStyle::GetBrush("ToolPanel.DarkGroupBorder"))
+        .BorderImage(FAppStyle::Get().GetBrush("ToolPanel.DarkGroupBorder"))
         .Padding(0.f)
         [
             SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight()
             [
                 SNew(SBorder)
-                .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
                 .BorderBackgroundColor(FSlateColor(HeaderColor * 0.6f))
                 .Padding(FMargin(8.f, 6.f))
                 [
@@ -212,7 +212,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildLane(
                     + SHorizontalBox::Slot().FillWidth(1.f).VAlign(VAlign_Center)
                     [
                         SNew(STextBlock).Text(Title)
-                        .Font(FAppStyle::GetFontStyle("BoldFont"))
+                        .Font(FAppStyle::Get().GetFontStyle("BoldFont"))
                         .ColorAndOpacity(FSlateColor(FLinearColor::White))
                     ]
                     + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
@@ -222,7 +222,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildLane(
             + SVerticalBox::Slot().AutoHeight()
             [
                 SNew(SBorder)
-                .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
                 .BorderBackgroundColor(FSlateColor(HeaderColor))
                 .Padding(0.f, 2.f)
             ]
@@ -321,7 +321,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
         + SHorizontalBox::Slot().AutoWidth()
         [
             SNew(SBorder)
-            .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+            .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
             .BorderBackgroundColor(FSlateColor(BarFinal))
             .Padding(BarWidth, 0.f)
         ]
@@ -345,7 +345,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
                 [
                     SNew(STextBlock)
                     .Text(Entry->DisplayName)
-                    .Font(bSelected ? FAppStyle::GetFontStyle("BoldFont") : FAppStyle::GetFontStyle("SmallFont"))
+                    .Font(bSelected ? FAppStyle::Get().GetFontStyle("BoldFont") : FAppStyle::Get().GetFontStyle("SmallFont"))
                     .ColorAndOpacity(FSlateColor(bSelected ? FLinearColor::White : FSlateColor::UseForeground()))
                     .ToolTipText(bHasError ? Entry->ErrorText : FText::GetEmpty())
                 ]
@@ -426,7 +426,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
         + SVerticalBox::Slot().AutoHeight()
         [
             SNew(SBorder)
-            .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+            .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
             .BorderBackgroundColor(FSlateColor(bSelected
                 ? FLinearColor(BarColor.R, BarColor.G, BarColor.B, 0.6f)
                 : FLinearColor::Transparent))
@@ -443,7 +443,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
             })
             [
                 SNew(SBorder)
-                .BorderImage(FAppStyle::GetBrush("ToolPanel.GroupBorder"))
+                .BorderImage(FAppStyle::Get().GetBrush("ToolPanel.GroupBorder"))
                 .BorderBackgroundColor(FSlateColor(BgTint))
                 .Padding(0.f)
                 [ MainRow ]
@@ -460,7 +460,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
                 + SHorizontalBox::Slot().AutoWidth()
                 [
                     SNew(SBorder)
-                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
                     .BorderBackgroundColor(FSlateColor(FLinearColor(BarColor.R, BarColor.G, BarColor.B, 0.45f)))
                     .Padding(FMargin(2.f, 0.f))
                 ]
@@ -468,7 +468,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildCard(FEntryPtr Entry, int32 Index,
                 + SHorizontalBox::Slot().FillWidth(1.f)
                 [
                     SNew(SBorder)
-                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
                     .BorderBackgroundColor(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.14f)))
                     .Padding(0.f)
                     [ BuildSubGroups(Entry) ]
@@ -489,7 +489,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubGroups(FEntryPtr Entry)
     Box->AddSlot().AutoHeight()
     [
         SNew(SBorder)
-        .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+        .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
         .BorderBackgroundColor(FSlateColor(FLinearColor(1.f,1.f,1.f,0.08f)))
         .Padding(0.f, 1.f)
     ];
@@ -584,7 +584,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
     // 主行
     TSharedRef<SWidget> Row =
         SNew(SBorder)
-        .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+        .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
         .BorderBackgroundColor(FSlateColor(bSubSelected
             ? FLinearColor(0.3f,0.3f,0.3f,0.4f) : FLinearColor::Transparent))
         .Padding(0.f)
@@ -650,7 +650,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
                 + SVerticalBox::Slot().AutoHeight()
                 [
                     SNew(STextBlock).Text(SubEntry->DisplayName)
-                    .Font(bSubSelected ? FAppStyle::GetFontStyle("SmallFont") : FCoreStyle::GetDefaultFontStyle("Regular", 8))
+                    .Font(bSubSelected ? FAppStyle::Get().GetFontStyle("SmallFont") : FCoreStyle::GetDefaultFontStyle("Regular", 8))
                     .ColorAndOpacity(FSlateColor(bSubSelected ? FLinearColor::White : FSlateColor::UseSubduedForeground()))
                 ]
                 + SVerticalBox::Slot().AutoHeight()
@@ -698,7 +698,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
                 + SHorizontalBox::Slot().AutoWidth()
                 [
                     SNew(SBorder)
-                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
                     .BorderBackgroundColor(FSlateColor(FLinearColor(0.45f, 0.45f, 0.45f, 0.45f)))
                     .Padding(FMargin(2.f, 0.f))
                 ]
@@ -706,7 +706,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
                 + SHorizontalBox::Slot().FillWidth(1.f)
                 [
                     SNew(SBorder)
-                    .BorderImage(FAppStyle::GetBrush("WhiteBrush"))
+                    .BorderImage(FAppStyle::Get().GetBrush("WhiteBrush"))
                     .BorderBackgroundColor(FSlateColor(FLinearColor(0.f, 0.f, 0.f, 0.12f)))
                     .Padding(0.f)
                     [ BuildSubGroups(SubEntry) ]

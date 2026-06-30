@@ -24,7 +24,7 @@ void SBatchDiffView::Construct(const FArguments& InArgs)
             [
                 SNew(STextBlock)
                 .Text(LOCTEXT("Title", "Dry-run 差异视图（P3）"))
-                .Font(FAppStyle::GetFontStyle("BoldFont"))
+                .Font(FAppStyle::Get().GetFontStyle("BoldFont"))
             ]
 
             + SVerticalBox::Slot()

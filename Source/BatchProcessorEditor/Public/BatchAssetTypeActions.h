@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "AssetTypeActions_Base.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
+#include "ToolMenuSection.h"
 
 /**
  * 注册 UBatchAsset 到 Content Browser：
