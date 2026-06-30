@@ -627,7 +627,7 @@ TSharedRef<SWidget> SBatchPipelineView::BuildSubItem(FEntryPtr ParentEntry, FSub
 
 void SBatchPipelineView::SelectComponent(UObject* Component)
 {
-    if (SelectedComponent.Get() == Component) Component = nullptr;
+    if (SelectedComponent.Get() == Component) return; // 已选中，不取消
     SelectedComponent = Component;
     OnSelectionChanged.ExecuteIfBound(Component);
 
