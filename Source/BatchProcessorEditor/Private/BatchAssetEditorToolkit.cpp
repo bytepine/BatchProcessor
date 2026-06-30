@@ -65,33 +65,52 @@ void FBatchAssetEditorToolkit::InitBatchAssetEditor(EToolkitMode::Type Mode,
     ExtendToolbar();
 
     // ── 默认 Tab 布局 ────────────────────────────────────────────────────────
-    // 三列：功能区(控制台/预览/结果/差异) | 流水线(图编辑) | 属性(组件参数)
-    // 左侧功能区显示运行信息；中间流水线是核心操作区；右侧属性始终可见。
+    // 左列（上下分）：预览/结果/差异（上）| 控制台（下）
+    // 右列（左右分）：流水线（宽）| 属性（窄）
     TSharedRef<FTabManager::FLayout> Layout =
-        FTabManager::NewLayout("BatchAssetEditor_Layout_v3")
+        FTabManager::NewLayout("BatchAssetEditor_Layout_v4")
         ->AddArea(
             FTabManager::NewPrimaryArea()
             ->SetOrientation(Orient_Horizontal)
-            // 左：功能区（控制台 / 预览 / 结果 / 差异）
+
+            // ── 左列：功能区，上下分割 ────────────────────────────────────
             ->Split(
-                FTabManager::NewStack()
-                ->SetSizeCoefficient(0.20f)
-                ->AddTab(ConsoleTabId, ETabState::OpenedTab)
-                ->AddTab(PreviewTabId, ETabState::OpenedTab)
-                ->AddTab(ResultTabId, ETabState::OpenedTab)
-                ->AddTab(DiffTabId, ETabState::OpenedTab)
+                FTabManager::NewSplitter()
+                ->SetOrientation(Orient_Vertical)
+                ->SetSizeCoefficient(0.30f)
+                // 上：预览 / 结果 / 差异
+                ->Split(
+                    FTabManager::NewStack()
+                    ->SetSizeCoefficient(0.55f)
+                    ->AddTab(PreviewTabId, ETabState::OpenedTab)
+                    ->AddTab(ResultTabId,  ETabState::OpenedTab)
+                    ->AddTab(DiffTabId,    ETabState::OpenedTab)
+                )
+                // 下：控制台
+                ->Split(
+                    FTabManager::NewStack()
+                    ->SetSizeCoefficient(0.45f)
+                    ->AddTab(ConsoleTabId, ETabState::OpenedTab)
+                )
             )
-            // 中：流水线（节点流图，核心编辑区）
+
+            // ── 右列：流水线 + 属性，左右分割 ────────────────────────────
             ->Split(
-                FTabManager::NewStack()
-                ->SetSizeCoefficient(0.60f)
-                ->AddTab(PipelineTabId, ETabState::OpenedTab)
-            )
-            // 右：属性面板（编辑选中组件参数）
-            ->Split(
-                FTabManager::NewStack()
-                ->SetSizeCoefficient(0.20f)
-                ->AddTab(DetailsTabId, ETabState::OpenedTab)
+                FTabManager::NewSplitter()
+                ->SetOrientation(Orient_Horizontal)
+                ->SetSizeCoefficient(0.70f)
+                // 流水线（核心编辑区，较宽）
+                ->Split(
+                    FTabManager::NewStack()
+                    ->SetSizeCoefficient(0.65f)
+                    ->AddTab(PipelineTabId, ETabState::OpenedTab)
+                )
+                // 属性（选中组件参数，较窄）
+                ->Split(
+                    FTabManager::NewStack()
+                    ->SetSizeCoefficient(0.35f)
+                    ->AddTab(DetailsTabId, ETabState::OpenedTab)
+                )
             )
         );
 
